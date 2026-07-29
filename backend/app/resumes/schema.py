@@ -13,10 +13,11 @@ class ResumeCreate(BaseModel):
     stored_filename: str = Field(min_length=1, max_length=255)
     file_path: str = Field(min_length=1, max_length=500)
     file_type: str = Field(min_length=1, max_length=100)
+    extracted_text: str = Field(min_length=1)
 
 
 class ResumeResponse(BaseModel):
-    """Expose persisted resume metadata."""
+    """Expose persisted resume metadata after upload."""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -25,6 +26,18 @@ class ResumeResponse(BaseModel):
     original_filename: str
     stored_filename: str
     file_path: str
+    file_type: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class ResumeListResponse(BaseModel):
+    """Expose resume information when listing user resumes."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    original_filename: str
     file_type: str
     created_at: datetime
     updated_at: datetime

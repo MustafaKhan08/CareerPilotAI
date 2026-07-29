@@ -1,0 +1,1 @@
+"""Resume text extraction package."""

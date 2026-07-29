@@ -6,6 +6,7 @@ from uuid import uuid4
 from fastapi import HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
+from app.extractions.service import extract_resume_text
 from app.resumes.model import Resume
 from app.resumes.schema import ResumeCreate
 
@@ -27,6 +28,7 @@ def create_resume(
 
     try:
         db.commit()
+
     except Exception:
         db.rollback()
 
@@ -49,7 +51,7 @@ async def save_resume_upload(
     extension: str,
     user_id: int,
 ) -> Resume:
-    """Save a resume file and persist its metadata."""
+    """Save a resume file, extract its text, and persist its metadata."""
 
     destination: Path | None = None
 
@@ -78,6 +80,17 @@ async def save_resume_upload(
     finally:
         await file.close()
 
+    try:
+        extracted_text = extract_resume_text(destination)
+
+    except HTTPException:
+        if destination is not None:
+            try:
+                destination.unlink(missing_ok=True)
+            except OSError:
+                pass
+        raise
+
     upload_path = destination.relative_to(PROJECT_ROOT).as_posix()
 
     resume_data = ResumeCreate(
@@ -86,22 +99,74 @@ async def save_resume_upload(
         stored_filename=stored_filename,
         file_path=upload_path,
         file_type=extension.lstrip("."),
+        extracted_text=extracted_text,
     )
 
     return create_resume(
-        db,
-        resume_data,
+        db=db,
+        resume_data=resume_data,
         uploaded_file_path=destination,
     )
 
 
-def get_user_resumes() -> None:
-    raise NotImplementedError
+def get_user_resumes(
+    db: Session,
+    user_id: int,
+) -> list[Resume]:
+    """Return all resumes belonging to the authenticated user."""
+
+    return (
+        db.query(Resume)
+        .filter(Resume.user_id == user_id)
+        .order_by(Resume.created_at.desc())
+        .all()
+    )
 
 
-def get_resume_by_id() -> None:
-    raise NotImplementedError
+def get_resume_by_id(
+    db: Session,
+    resume_id: int,
+    user_id: int,
+) -> Resume:
+    """Return a single resume belonging to the authenticated user."""
+
+    resume = (
+        db.query(Resume)
+        .filter(
+            Resume.id == resume_id,
+            Resume.user_id == user_id,
+        )
+        .first()
+    )
+
+    if resume is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Resume not found.",
+        )
+
+    return resume
 
 
-def delete_resume() -> None:
-    raise NotImplementedError
+def delete_resume(
+    db: Session,
+    resume_id: int,
+    user_id: int,
+) -> None:
+    """Delete a user's resume and its uploaded file."""
+
+    resume = get_resume_by_id(
+        db=db,
+        resume_id=resume_id,
+        user_id=user_id,
+    )
+
+    file_path = PROJECT_ROOT / resume.file_path
+
+    try:
+        file_path.unlink(missing_ok=True)
+    except OSError:
+        pass
+
+    db.delete(resume)
+    db.commit()
