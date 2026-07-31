@@ -1,5 +1,7 @@
 """SQLAlchemy model definitions for the resume domain."""
 
+from __future__ import annotations
+
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -10,6 +12,7 @@ from app.db.database import Base
 
 if TYPE_CHECKING:
     from app.users.model import User
+    from app.analyses.model import ResumeAnalysis
 
 
 class Resume(Base):
@@ -63,6 +66,16 @@ class Resume(Base):
         nullable=False,
     )
 
+    # ----------------------------
+    # Relationships
+    # ----------------------------
+
     user: Mapped["User"] = relationship(
         back_populates="resumes",
+    )
+
+    analyses: Mapped[list["ResumeAnalysis"]] = relationship(
+        back_populates="resume",
+        cascade="all, delete-orphan",
+        order_by="ResumeAnalysis.version.desc()",
     )

@@ -1,4 +1,6 @@
-"""Database operations for persisted resume metadata."""
+"""
+Database operations for persisted resume metadata.
+"""
 
 from pathlib import Path
 from uuid import uuid4
@@ -6,6 +8,7 @@ from uuid import uuid4
 from fastapi import HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
+from app.ai.service import ai_service
 from app.extractions.service import extract_resume_text
 from app.resumes.model import Resume
 from app.resumes.schema import ResumeCreate
@@ -21,9 +24,12 @@ def create_resume(
     resume_data: ResumeCreate,
     uploaded_file_path: Path | None = None,
 ) -> Resume:
-    """Commit resume metadata and remove its file if the commit fails."""
+    """
+    Commit resume metadata and remove its file if the commit fails.
+    """
 
     resume = Resume(**resume_data.model_dump())
+
     db.add(resume)
 
     try:
@@ -41,34 +47,75 @@ def create_resume(
         raise
 
     db.refresh(resume)
+
     return resume
 
 
-async def save_resume_upload(
+async def validate_extracted_resume(
+    extracted_text: str,
+) -> None:
+    """
+    Validate that the uploaded document is actually a resume.
+
+    Raises
+    ------
+    HTTPException
+        If the uploaded document is not a professional resume.
+    """
+
+    validation = await ai_service.validate_resume(
+        resume_text=extracted_text,
+    )
+
+    if validation.is_resume:
+        return
+
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=validation.reason,
+    )
+
+
+async def save_and_validate_resume_upload(
     db: Session,
     file: UploadFile,
     original_filename: str,
     extension: str,
     user_id: int,
 ) -> Resume:
-    """Save a resume file, extract its text, and persist its metadata."""
+    """
+    Save an uploaded resume, extract its text, validate that it is
+    actually a resume, and only then persist it.
+    """
 
     destination: Path | None = None
 
     try:
-        RESUME_UPLOAD_DIRECTORY.mkdir(parents=True, exist_ok=True)
+        RESUME_UPLOAD_DIRECTORY.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
 
         stored_filename = f"{uuid4().hex}{extension}"
-        destination = RESUME_UPLOAD_DIRECTORY / stored_filename
+
+        destination = (
+            RESUME_UPLOAD_DIRECTORY
+            / stored_filename
+        )
 
         with destination.open("wb") as output_file:
-            while chunk := await file.read(UPLOAD_CHUNK_SIZE):
+            while chunk := await file.read(
+                UPLOAD_CHUNK_SIZE,
+            ):
                 output_file.write(chunk)
 
     except OSError as error:
+
         if destination is not None:
             try:
-                destination.unlink(missing_ok=True)
+                destination.unlink(
+                    missing_ok=True,
+                )
             except OSError:
                 pass
 
@@ -81,44 +128,75 @@ async def save_resume_upload(
         await file.close()
 
     try:
-        extracted_text = extract_resume_text(destination)
+        extracted_text = extract_resume_text(
+            destination,
+        )
+
+        await validate_extracted_resume(
+            extracted_text=extracted_text,
+        )
+
+        upload_path = (
+            destination.relative_to(PROJECT_ROOT)
+            .as_posix()
+        )
+
+        resume_data = ResumeCreate(
+            user_id=user_id,
+            original_filename=original_filename,
+            stored_filename=stored_filename,
+            file_path=upload_path,
+            file_type=extension.lstrip("."),
+            extracted_text=extracted_text,
+        )
+
+        return create_resume(
+            db=db,
+            resume_data=resume_data,
+            uploaded_file_path=destination,
+        )
 
     except HTTPException:
+
         if destination is not None:
             try:
-                destination.unlink(missing_ok=True)
+                destination.unlink(
+                    missing_ok=True,
+                )
             except OSError:
                 pass
+
         raise
 
-    upload_path = destination.relative_to(PROJECT_ROOT).as_posix()
+    except Exception:
 
-    resume_data = ResumeCreate(
-        user_id=user_id,
-        original_filename=original_filename,
-        stored_filename=stored_filename,
-        file_path=upload_path,
-        file_type=extension.lstrip("."),
-        extracted_text=extracted_text,
-    )
+        if destination is not None:
+            try:
+                destination.unlink(
+                    missing_ok=True,
+                )
+            except OSError:
+                pass
 
-    return create_resume(
-        db=db,
-        resume_data=resume_data,
-        uploaded_file_path=destination,
-    )
+        raise
 
 
 def get_user_resumes(
     db: Session,
     user_id: int,
 ) -> list[Resume]:
-    """Return all resumes belonging to the authenticated user."""
+    """
+    Return all resumes belonging to the authenticated user.
+    """
 
     return (
         db.query(Resume)
-        .filter(Resume.user_id == user_id)
-        .order_by(Resume.created_at.desc())
+        .filter(
+            Resume.user_id == user_id,
+        )
+        .order_by(
+            Resume.created_at.desc(),
+        )
         .all()
     )
 
@@ -128,7 +206,9 @@ def get_resume_by_id(
     resume_id: int,
     user_id: int,
 ) -> Resume:
-    """Return a single resume belonging to the authenticated user."""
+    """
+    Return a single resume belonging to the authenticated user.
+    """
 
     resume = (
         db.query(Resume)
@@ -153,7 +233,9 @@ def delete_resume(
     resume_id: int,
     user_id: int,
 ) -> None:
-    """Delete a user's resume and its uploaded file."""
+    """
+    Delete a user's resume and its uploaded file.
+    """
 
     resume = get_resume_by_id(
         db=db,
@@ -164,9 +246,12 @@ def delete_resume(
     file_path = PROJECT_ROOT / resume.file_path
 
     try:
-        file_path.unlink(missing_ok=True)
+        file_path.unlink(
+            missing_ok=True,
+        )
     except OSError:
         pass
 
     db.delete(resume)
+
     db.commit()

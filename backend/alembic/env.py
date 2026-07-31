@@ -9,6 +9,7 @@ from app.core.config import settings
 from app.db.database import Base
 from app.users.model import User
 from app.resumes.model import Resume
+from app.analyses.model import ResumeAnalysis
   # Required for Alembic to discover the User model
 
 config = context.config

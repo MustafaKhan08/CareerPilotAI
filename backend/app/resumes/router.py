@@ -21,7 +21,7 @@ from app.resumes.service import (
     delete_resume,
     get_resume_by_id,
     get_user_resumes,
-    save_resume_upload,
+    save_and_validate_resume_upload,
 )
 from app.users.model import User
 
@@ -53,7 +53,7 @@ async def upload_resume(
             detail="Only .pdf and .docx files are allowed.",
         )
 
-    resume = await save_resume_upload(
+    resume = await save_and_validate_resume_upload(
         db=db,
         file=file,
         original_filename=original_filename,
