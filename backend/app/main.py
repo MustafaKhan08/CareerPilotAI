@@ -5,6 +5,8 @@ from fastapi import FastAPI
 from app.analyses.router import router as analyses_router
 from app.ai.router import router as ai_router
 from app.ai.service import ai_service
+from app.embeddings.similarity import similarity_engine
+from app.jobs.router import router as jobs_router
 from app.resumes.router import router as resumes_router
 from app.users.router import router as users_router
 
@@ -14,9 +16,24 @@ async def lifespan(app: FastAPI):
     """
     Application lifespan.
 
-    Ensures shared resources are released gracefully during shutdown.
+    Loads shared resources during startup and
+    releases them gracefully during shutdown.
     """
+
+    # =====================================================
+    # Startup
+    # =====================================================
+
+    similarity_engine.load()
+
     yield
+
+    # =====================================================
+    # Shutdown
+    # =====================================================
+
+    similarity_engine.unload()
+
     await ai_service.close()
 
 
@@ -28,15 +45,22 @@ app = FastAPI(
     },
 )
 
+# =====================================================
+# REGISTER ROUTERS
+# =====================================================
+
 app.include_router(users_router)
 app.include_router(resumes_router)
 app.include_router(ai_router)
 app.include_router(analyses_router)
+app.include_router(jobs_router)
 
 
 @app.get("/")
 def read_root() -> dict[str, str]:
-    """Health check endpoint."""
+    """
+    Health check endpoint.
+    """
 
     return {
         "message": "CareerPilotAI Backend Running Successfully"

@@ -102,3 +102,19 @@ backend/uploads/**
 
 # Large datasets
 data/raw/job_postings_dataset.csv
+
+# ==========================
+# Processed datasets
+# ==========================
+data/cleaned/
+data/processed/
+
+# ==========================
+# Embedding database
+# ==========================
+backend/data/embeddings/
+
+# ==========================
+# Python cache
+# ==========================
+**/__pycache__/

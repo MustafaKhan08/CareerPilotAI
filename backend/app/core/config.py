@@ -77,6 +77,43 @@ class Settings(BaseSettings):
     user_agent: str = "CareerPilotAI/1.0"
 
     # ==========================================================
+    # NVIDIA Embedding Configuration
+    # ==========================================================
+
+    # Primary NVIDIA API Key
+    nvidia_primary_api_key: str
+
+    # Fallback NVIDIA API Key
+    nvidia_fallback_api_key: str
+
+    # NVIDIA Embedding Endpoint
+    nvidia_embedding_api_url: str = (
+        "https://integrate.api.nvidia.com/v1/embeddings"
+    )
+    # Future extensibility
+    embedding_provider: str = "nvidia"
+    # Primary embedding model
+    embedding_primary_model: str = (
+        "nvidia/nemotron-3-embed-1b"
+    )
+    # Automatic fallback model
+    embedding_fallback_model: str = (
+        "nvidia/llama-nemotron-embed-1b-v2"
+    )
+    # Embedding generation
+    embedding_batch_size: int = 100
+    embedding_max_retries: int = 3
+    embedding_timeout: float = 30.0
+    embedding_backoff_base_seconds: float = 1.0
+    # Storage
+    embedding_storage_directory: str = (
+        "data/embeddings"
+    )
+    # Search
+    embedding_similarity_top_k: int = 20
+
+
+    # ==========================================================
     # Validators
     # ==========================================================
 

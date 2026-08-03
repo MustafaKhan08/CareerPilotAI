@@ -607,3 +607,41 @@ def analysis_exists(
         .first()
         is not None
     )
+
+
+# ==========================================================
+# RESPONSE HELPERS
+# ==========================================================
+
+def to_response(
+    analysis: ResumeAnalysis,
+) -> ResumeAnalysisResponse:
+    """
+    Convert a SQLAlchemy ResumeAnalysis model into a
+    ResumeAnalysisResponse schema.
+    """
+
+    return ResumeAnalysisResponse.model_validate(
+        analysis,
+    )
+
+
+def latest_analysis_response(
+    db: Session,
+    resume_id: int,
+) -> ResumeAnalysisResponse | None:
+    """
+    Return the latest analysis as a response schema.
+    """
+
+    analysis = get_latest_analysis(
+        db=db,
+        resume_id=resume_id,
+    )
+
+    if analysis is None:
+        return None
+
+    return to_response(
+        analysis,
+    )
