@@ -645,3 +645,95 @@ def latest_analysis_response(
     return to_response(
         analysis,
     )
+
+
+# ==========================================================
+# AI CONTEXT
+# ==========================================================
+
+
+def format_resume_context(
+    analysis: ResumeAnalysisResponse | None,
+) -> str | None:
+    """
+    Convert the latest resume analysis into a compact
+    prompt context for the AI Career Mentor.
+
+    Returns None when no analysis is available.
+    """
+
+    if analysis is None:
+        return None
+
+    sections: list[str] = [
+        "Latest Resume Analysis",
+        "",
+        f"ATS Score: {analysis.ats_score}/100",
+        f"Career Domain: {analysis.career_domain}",
+        f"Experience Level: {analysis.experience_level}",
+        "",
+        "Professional Summary:",
+        analysis.summary,
+    ]
+
+    if analysis.skills:
+        sections.extend(
+            [
+                "",
+                "Skills:",
+                *[
+                    f"- {skill}"
+                    for skill in analysis.skills
+                ],
+            ]
+        )
+
+    if analysis.missing_skills:
+        sections.extend(
+            [
+                "",
+                "Missing Skills:",
+                *[
+                    f"- {skill}"
+                    for skill in analysis.missing_skills
+                ],
+            ]
+        )
+
+    if analysis.strengths:
+        sections.extend(
+            [
+                "",
+                "Strengths:",
+                *[
+                    f"- {item}"
+                    for item in analysis.strengths
+                ],
+            ]
+        )
+
+    if analysis.weaknesses:
+        sections.extend(
+            [
+                "",
+                "Weaknesses:",
+                *[
+                    f"- {item}"
+                    for item in analysis.weaknesses
+                ],
+            ]
+        )
+
+    if analysis.suggestions:
+        sections.extend(
+            [
+                "",
+                "Recommendations:",
+                *[
+                    f"- {item}"
+                    for item in analysis.suggestions
+                ],
+            ]
+        )
+
+    return "\n".join(sections)

@@ -255,3 +255,26 @@ def delete_resume(
     db.delete(resume)
 
     db.commit()
+
+
+def get_latest_resume(
+    db: Session,
+    user_id: int,
+) -> Resume | None:
+    """
+    Return the authenticated user's most recently uploaded resume.
+
+    Returns:
+        The latest Resume object or None if no resume exists.
+    """
+
+    return (
+        db.query(Resume)
+        .filter(
+            Resume.user_id == user_id,
+        )
+        .order_by(
+            Resume.created_at.desc(),
+        )
+        .first()
+    )
