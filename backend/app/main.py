@@ -8,6 +8,7 @@ from app.ai.service import ai_service
 from app.embeddings.similarity import similarity_engine
 from app.interviews.router import router as interviews_router
 from app.jobs.router import router as jobs_router
+from app.ocr.service import ocr_engine
 from app.resumes.router import router as resumes_router
 from app.users.router import router as users_router
 from app.chat.router import router as chat_router
@@ -29,6 +30,8 @@ async def lifespan(app: FastAPI):
 
     similarity_engine.load()
 
+    ocr_engine.load()
+
     yield
 
     # =====================================================
@@ -36,6 +39,8 @@ async def lifespan(app: FastAPI):
     # =====================================================
 
     similarity_engine.unload()
+
+    ocr_engine.unload()
 
     await ai_service.close()
 
