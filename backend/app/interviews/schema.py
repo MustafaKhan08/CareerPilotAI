@@ -44,8 +44,8 @@ class InterviewStartRequest(BaseModel):
 
 
 # ==========================================================
-# AI RESPONSE SCHEMA
-# Validates the JSON the AI must return.
+# AI QUESTION SCHEMA
+# Validates the JSON the AI must return for a question.
 # ==========================================================
 
 
@@ -62,6 +62,66 @@ class AIQuestionSchema(BaseModel):
     difficulty: str
 
     expected_focus: list[str]
+
+
+# ==========================================================
+# AI EVALUATION SCHEMA
+# Validates the raw JSON the AI returns for an evaluation.
+# Intentionally does not include next_question or completed
+# — those are derived by the service layer.
+# ==========================================================
+
+
+class AIEvaluationSchema(BaseModel):
+    """
+    Strict schema matching the JSON the AI must produce
+    when evaluating a candidate's answer.
+    """
+
+    score: float = Field(ge=0.0, le=10.0)
+
+    strengths: list[str]
+
+    weaknesses: list[str]
+
+    communication: str
+
+    confidence: str
+
+    technical_accuracy: str
+
+    ideal_answer: str
+
+    improvements: list[str]
+
+
+# ==========================================================
+# AI REPORT SCHEMA
+# Validates the raw JSON the AI returns for the final report.
+# Intentionally does not include session_id or completed_at
+# — those are derived by the service layer from the session.
+# ==========================================================
+
+
+class AIReportSchema(BaseModel):
+    """
+    Strict schema matching the JSON the AI must produce
+    for the final interview report.
+    """
+
+    overall_score: float = Field(ge=0.0, le=10.0)
+
+    summary: str
+
+    strengths: list[str]
+
+    weaknesses: list[str]
+
+    recommendations: str
+
+    career_readiness: str
+
+    next_steps: list[str]
 
 
 # ==========================================================
@@ -98,7 +158,7 @@ class InterviewSessionStartResponse(BaseModel):
 
 
 class InterviewQuestionResponse(BaseModel):
-    """One interview question."""
+    """One interview question returned within an evaluation."""
 
     question_id: int
 
@@ -108,7 +168,7 @@ class InterviewQuestionResponse(BaseModel):
 
 
 # ==========================================================
-# ANSWER SUBMISSION
+# ANSWER SUBMISSION REQUEST
 # ==========================================================
 
 
@@ -120,8 +180,20 @@ class InterviewAnswerRequest(BaseModel):
     )
 
 
+# ==========================================================
+# EVALUATION RESPONSE
+# Returned after a candidate submits an answer.
+# ==========================================================
+
+
 class InterviewEvaluationResponse(BaseModel):
-    """AI evaluation of an answer."""
+    """
+    Full evaluation response returned to the client
+    after a candidate submits an answer.
+
+    next_question is None when the interview is complete.
+    completed is True when this was the final question.
+    """
 
     score: float
 
@@ -142,6 +214,39 @@ class InterviewEvaluationResponse(BaseModel):
     next_question: InterviewQuestionResponse | None = None
 
     completed: bool
+
+
+# ==========================================================
+# FINAL REPORT RESPONSE
+# Returned by GET /interviews/{session_id}/report.
+# ==========================================================
+
+
+class InterviewReportResponse(BaseModel):
+    """
+    Final interview report returned to the client.
+
+    Combines the AI-generated report content with session
+    metadata (session_id, completed_at).
+    """
+
+    session_id: int
+
+    overall_score: float
+
+    summary: str
+
+    strengths: list[str]
+
+    weaknesses: list[str]
+
+    recommendations: str
+
+    career_readiness: str
+
+    next_steps: list[str]
+
+    completed_at: datetime
 
 
 # ==========================================================
@@ -262,25 +367,6 @@ class InterviewSessionResponse(BaseModel):
     questions: list[
         InterviewQuestionItem
     ]
-
-
-# ==========================================================
-# FINAL REPORT
-# ==========================================================
-
-
-class InterviewReportResponse(BaseModel):
-    """Final interview report."""
-
-    session_id: int
-
-    overall_score: float
-
-    summary: str
-
-    recommendations: str
-
-    completed_at: datetime
 
 
 # ==========================================================
