@@ -3,6 +3,7 @@ Pydantic schemas for the job domain.
 """
 
 from datetime import datetime
+from typing import Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -167,20 +168,22 @@ class JobSummaryResponse(BaseModel):
 
 
 # =====================================================
-# SEARCH RESPONSE
+# PAGINATED RESPONSE
 # =====================================================
 
-class JobSearchResponse(BaseModel):
+T = TypeVar("T")
+
+class PaginatedResponse(BaseModel, Generic[T]):
     """
-    Response schema returned by the search endpoint.
+    Generic paginated wrapper response.
     """
 
-    query: str
-
-    total: int
+    items: list[T]
 
     page: int
 
     limit: int
 
-    jobs: list[JobSummaryResponse]
+    total: int
+
+    total_pages: int

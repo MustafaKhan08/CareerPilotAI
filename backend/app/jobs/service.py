@@ -71,18 +71,29 @@ def get_job_by_id(
 
 def get_all_jobs(
     db: Session,
-) -> list[Job]:
+    page: int = 1,
+    limit: int = 20,
+) -> dict[str, int | list[Job]]:
     """
-    Return all jobs ordered by newest first.
+    Return all jobs ordered by newest first with pagination.
     """
 
-    return (
+    total = db.query(Job).count()
+
+    jobs = (
         db.query(Job)
         .order_by(
             Job.created_at.desc(),
         )
+        .offset((page - 1) * limit)
+        .limit(limit)
         .all()
     )
+
+    return {
+        "total": total,
+        "items": jobs,
+    }
 
 
 # =====================================================
@@ -113,9 +124,8 @@ async def search_jobs(
         query
     )
 
-    matches = similarity_engine.search(
+    matches, total = similarity_engine.search(
         query_embedding=query_embedding,
-        top_k=100,
         page=page,
         limit=limit,
     )
@@ -173,12 +183,14 @@ async def search_jobs(
         )
 
     logger.info(
-        "Semantic search returned %d jobs.",
+        "Semantic search found %d total jobs, returning %d for page %d.",
+        total,
         len(results),
+        page,
     )
 
     return {
-        "total": len(results),
+        "total": total,
         "jobs": results,
     }
 

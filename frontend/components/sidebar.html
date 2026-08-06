@@ -1,0 +1,45 @@
+<aside class="sidebar flex flex-col" id="app-sidebar" aria-label="Sidebar Navigation">
+    <div class="p-6 flex items-center gap-3">
+        <i class="fa-solid fa-plane-departure text-accent text-2xl" aria-hidden="true"></i>
+        <span class="text-xl font-bold text-white tracking-wide">CareerPilot<span class="text-primary">AI</span></span>
+        <button id="close-sidebar-btn" class="md:hidden ml-auto text-gray-400 hover:text-white" aria-label="Close Sidebar">
+            <i class="fa-solid fa-times"></i>
+        </button>
+    </div>
+    
+    <nav class="flex-1 mt-6 flex flex-col gap-2">
+        <a href="/pages/dashboard.html" class="sidebar-nav-item active">
+            <i class="fa-solid fa-house" aria-hidden="true"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="/pages/resume.html" class="sidebar-nav-item">
+            <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
+            <span>Resume Management</span>
+        </a>
+        <a href="/pages/jobs.html" class="sidebar-nav-item">
+            <i class="fa-solid fa-briefcase" aria-hidden="true"></i>
+            <span>Jobs</span>
+        </a>
+        <a href="/pages/mentor.html" class="sidebar-nav-item">
+            <i class="fa-solid fa-robot" aria-hidden="true"></i>
+            <span>AI Career Mentor</span>
+        </a>
+        <a href="/pages/interview.html" class="sidebar-nav-item">
+            <i class="fa-solid fa-video" aria-hidden="true"></i>
+            <span>Mock Interview</span>
+        </a>
+        <a href="/pages/profile.html" class="sidebar-nav-item">
+            <i class="fa-solid fa-user" aria-hidden="true"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+    
+    <div class="p-6 border-t border-gray-800">
+        <button onclick="router.logout()" class="w-full btn btn-primary flex justify-center items-center gap-2">
+            <i class="fa-solid fa-sign-out-alt" aria-hidden="true"></i> Logout
+        </button>
+    </div>
+</aside>
+
+<!-- Mobile Overlay -->
+<div id="sidebar-overlay" class="sidebar-overlay"></div>

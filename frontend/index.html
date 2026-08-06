@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareerPilotAI - Elevate Your Career</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#8B5CF6',
+                        accent: '#06B6D4',
+                        dark: '#0F172A',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-dark text-slate-50 antialiased">
+
+    <!-- Navbar Container -->
+    <div id="navbar-container"></div>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-12 flex flex-col items-center justify-center text-center">
+        
+        <div class="glass-panel p-10 max-w-3xl w-full mx-auto relative overflow-hidden">
+            <!-- Decorative background blob -->
+            <div class="absolute -top-20 -right-20 w-64 h-64 bg-primary opacity-20 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-20 -left-20 w-64 h-64 bg-secondary opacity-20 rounded-full blur-3xl"></div>
+            
+            <div class="relative z-10">
+                <h1 class="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                    AI-Powered Career Growth
+                </h1>
+                <p class="text-lg md:text-xl text-gray-300 mb-10 leading-relaxed">
+                    Land your dream job with AI resume analysis, personalized mentoring, mock interviews, and intelligent job matching.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="/pages/register.html" class="btn btn-primary hover-scale text-lg px-8 py-3">
+                        Get Started <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </a>
+                    <a href="/pages/login.html" class="glass-panel px-8 py-3 text-lg font-medium hover:bg-white/5 transition hover-scale">
+                        Sign In
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer Container -->
+    <div id="footer-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/constants.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/router.js"></script>
+    <script src="js/api.js"></script>
+    
+    <script>
+        // Load components
+        document.addEventListener('DOMContentLoaded', () => {
+            utils.loadComponent('navbar-container', 'components/navbar.html');
+            utils.loadComponent('footer-container', 'components/footer.html');
+        });
+    </script>
+</body>
+</html>

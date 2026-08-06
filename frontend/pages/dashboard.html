@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CareerPilotAI</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#8B5CF6',
+                        accent: '#06B6D4',
+                        dark: '#0F172A',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body class="bg-dark text-slate-50 antialiased dashboard-layout">
+
+    <!-- Sidebar Container -->
+    <div id="sidebar-container"></div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <!-- Top Navbar Container -->
+        <div id="navbar-container"></div>
+
+        <main class="flex-1 p-6 lg:p-10 overflow-y-auto">
+            <!-- Welcome Section -->
+            <header class="mb-10">
+                <h1 class="text-3xl font-bold text-white mb-2">Welcome back, <span id="welcome-name" class="text-primary">...</span>!</h1>
+                <p class="text-gray-400">Here's what's happening with your career journey today.</p>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- Statistics Row -->
+                <div class="col-span-12 grid grid-cols-1 md:grid-cols-3 gap-6 mb-2">
+                    <!-- Stat 1 -->
+                    <div class="glass-panel stat-card hover-scale">
+                        <div class="stat-icon bg-blue-500/20 text-blue-500">
+                            <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-400 font-medium">Saved Resumes</p>
+                            <h3 class="text-2xl font-bold mt-1" id="stat-resumes">-</h3>
+                        </div>
+                    </div>
+                    <!-- Stat 2 -->
+                    <div class="glass-panel stat-card hover-scale">
+                        <div class="stat-icon bg-purple-500/20 text-purple-500">
+                            <i class="fa-solid fa-briefcase" aria-hidden="true"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-400 font-medium">Tracked Jobs</p>
+                            <h3 class="text-2xl font-bold mt-1" id="stat-jobs">-</h3>
+                        </div>
+                    </div>
+                    <!-- Stat 3 -->
+                    <div class="glass-panel stat-card hover-scale">
+                        <div class="stat-icon bg-cyan-500/20 text-cyan-500">
+                            <i class="fa-solid fa-video" aria-hidden="true"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-400 font-medium">Mock Interviews</p>
+                            <h3 class="text-2xl font-bold mt-1" id="stat-interviews">—</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content Row -->
+                <div class="col-span-12 lg:col-span-8 space-y-6">
+                    <!-- Latest Analysis Card -->
+                    <section class="glass-panel p-6" aria-label="Latest Resume Analysis">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-lg font-semibold flex items-center gap-2">
+                                <i class="fa-solid fa-magnifying-glass-chart text-accent" aria-hidden="true"></i> Latest Resume Analysis
+                            </h2>
+                        </div>
+                        <div id="latest-analysis-container">
+                            <!-- Loading State -->
+                            <div class="flex justify-center py-6">
+                                <i class="fa-solid fa-spinner fa-spin text-gray-500 text-2xl" aria-hidden="true"></i>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Recent Activity (Empty State) -->
+                    <section class="glass-panel p-6" aria-label="Recent Activity">
+                        <h2 class="text-lg font-semibold flex items-center gap-2 mb-6">
+                            <i class="fa-solid fa-clock-rotate-left text-gray-400" aria-hidden="true"></i> Recent Activity
+                        </h2>
+                        <div class="text-center py-8 border border-dashed border-gray-700 rounded-lg bg-gray-800/30">
+                            <i class="fa-solid fa-ghost text-gray-600 text-3xl mb-3" aria-hidden="true"></i>
+                            <p class="text-gray-400 text-sm">No recent activity found.</p>
+                            <p class="text-gray-500 text-xs mt-1">Your actions will appear here automatically.</p>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Right Sidebar Row -->
+                <div class="col-span-12 lg:col-span-4 space-y-6">
+                    <!-- Quick Actions -->
+                    <section class="glass-panel p-6" aria-label="Quick Actions">
+                        <h2 class="text-lg font-semibold mb-6">Quick Actions</h2>
+                        <div class="grid grid-cols-2 gap-3">
+                            <a href="/pages/resume.html" class="flex flex-col items-center justify-center p-4 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg transition border border-gray-700 hover:border-primary text-center">
+                                <i class="fa-solid fa-upload text-xl mb-2 text-primary" aria-hidden="true"></i>
+                                <span class="text-xs font-medium">Upload Resume</span>
+                            </a>
+                            <a href="/pages/jobs.html" class="flex flex-col items-center justify-center p-4 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg transition border border-gray-700 hover:border-secondary text-center">
+                                <i class="fa-solid fa-search text-xl mb-2 text-secondary" aria-hidden="true"></i>
+                                <span class="text-xs font-medium">Find Jobs</span>
+                            </a>
+                            <a href="/pages/mentor.html" class="flex flex-col items-center justify-center p-4 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg transition border border-gray-700 hover:border-accent text-center">
+                                <i class="fa-solid fa-comment-dots text-xl mb-2 text-accent" aria-hidden="true"></i>
+                                <span class="text-xs font-medium">Ask Mentor</span>
+                            </a>
+                            <a href="/pages/interview.html" class="flex flex-col items-center justify-center p-4 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg transition border border-gray-700 hover:border-success text-center">
+                                <i class="fa-solid fa-microphone text-xl mb-2 text-success" aria-hidden="true"></i>
+                                <span class="text-xs font-medium">Mock Interview</span>
+                            </a>
+                        </div>
+                    </section>
+
+                    <!-- Recent Resume -->
+                    <section class="glass-panel p-6" aria-label="Recent Resume">
+                        <h2 class="text-lg font-semibold mb-6">Recent Resume</h2>
+                        <div id="recent-resume-container">
+                            <!-- Loading State -->
+                            <div class="flex justify-center py-4">
+                                <i class="fa-solid fa-spinner fa-spin text-gray-500 text-xl" aria-hidden="true"></i>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/config.js"></script>
+    <script src="../js/constants.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/router.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/dashboard.js"></script>
+</body>
+</html>

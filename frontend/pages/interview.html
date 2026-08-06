@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Mock Interview - CareerPilotAI</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#8B5CF6',
+                        accent: '#06B6D4',
+                        dark: '#0F172A',
+                        success: '#22C55E',
+                        warning: '#F59E0B',
+                        danger: '#EF4444'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/interview.css">
+</head>
+<body class="bg-dark text-slate-50 antialiased dashboard-layout">
+
+    <!-- Sidebar Container -->
+    <div id="sidebar-container"></div>
+
+    <!-- Main Content Area -->
+    <div class="main-content flex flex-col h-screen">
+        <!-- Top Navbar Container -->
+        <div id="navbar-container"></div>
+
+        <main class="flex-1 p-6 lg:p-10 overflow-y-auto" id="main-scroll-area">
+            
+            <!-- STATE 1: Configuration -->
+            <section id="config-state" class="block transition-opacity duration-300">
+                <header class="mb-8 text-center">
+                    <h1 class="text-3xl font-bold text-white mb-2">AI Mock Interview</h1>
+                    <p class="text-gray-400">Configure your simulation to practice realistic interview scenarios.</p>
+                </header>
+
+                <div class="config-card">
+                    <div class="config-card-header">
+                        <h2 class="config-card-title">Interview Configuration</h2>
+                        <p class="config-card-desc">Set the parameters for your mock interview session.</p>
+                    </div>
+
+                    <form id="config-form" class="space-y-6">
+                        <!-- Target Role -->
+                        <div>
+                            <label for="target_role" class="form-label required">Target Role</label>
+                            <input type="text" id="target_role" name="target_role" class="form-input" required placeholder="e.g. Senior Frontend Developer">
+                        </div>
+
+                        <!-- Grid for Selects -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Interview Type -->
+                            <div>
+                                <label for="interview_type" class="form-label required">Interview Type</label>
+                                <div class="custom-select-wrapper">
+                                    <select id="interview_type" name="interview_type" class="custom-select" required>
+                                        <option value="" disabled selected>Select interview type</option>
+                                        <option value="hr">HR</option>
+                                        <option value="technical">Technical</option>
+                                        <option value="resume">Resume-based</option>
+                                        <option value="behavioral">Behavioral</option>
+                                        <option value="mixed">Mixed</option>
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down custom-select-icon"></i>
+                                </div>
+                            </div>
+
+                            <!-- Difficulty -->
+                            <div>
+                                <label for="difficulty" class="form-label required">Difficulty</label>
+                                <div class="custom-select-wrapper">
+                                    <select id="difficulty" name="difficulty" class="custom-select" required>
+                                        <option value="" disabled selected>Select difficulty</option>
+                                        <option value="beginner">Beginner</option>
+                                        <option value="intermediate">Intermediate</option>
+                                        <option value="advanced">Advanced</option>
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down custom-select-icon"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Grid for number and optional fields -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Total Questions -->
+                            <div>
+                                <label for="total_questions" class="form-label required">Total Questions (1-20)</label>
+                                <input type="number" id="total_questions" name="total_questions" class="form-input" required min="1" max="20" value="10">
+                            </div>
+
+                            <!-- Interview Title -->
+                            <div>
+                                <label for="title" class="form-label">Interview Title (Optional)</label>
+                                <input type="text" id="title" name="title" class="form-input" placeholder="e.g. Q3 Prep - Amazon">
+                            </div>
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-800 flex justify-end">
+                            <button type="submit" id="start-btn" class="btn btn-primary w-full md:w-auto flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-play" aria-hidden="true"></i> Start Interview
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- STATE 2: Live Interview -->
+            <section id="live-state" class="hidden transition-opacity duration-300 live-interview-container">
+                <header class="mb-6 flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-record-vinyl text-red-500 animate-pulse"></i> Live Session
+                    </h2>
+                    <span id="live-session-id" class="text-sm text-gray-500 font-mono"></span>
+                </header>
+
+                <div class="progress-header">
+                    <span id="question-counter">Question 1 of 10</span>
+                    <span id="question-category" class="px-3 py-1 bg-slate-800 rounded-full text-xs text-primary">Technical</span>
+                </div>
+                
+                <div class="progress-bar-bg" aria-label="Interview Progress">
+                    <div id="progress-fill" class="progress-bar-fill" style="width: 10%;"></div>
+                </div>
+
+                <div class="question-box">
+                    <h3 class="text-sm text-accent uppercase tracking-wider font-semibold mb-3"><i class="fa-solid fa-circle-question mr-2"></i>Question</h3>
+                    <p id="current-question-text" class="question-text" aria-live="polite">Loading question...</p>
+                </div>
+
+                <form id="answer-form" class="space-y-4">
+                    <div>
+                        <label for="answer-input" class="sr-only">Your Answer</label>
+                        <textarea id="answer-input" class="answer-textarea" required placeholder="Type your detailed answer here..."></textarea>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="submit" id="submit-answer-btn" class="btn btn-primary flex items-center gap-2 px-8">
+                            Submit Answer <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- STATE 3: Loading Interstitial -->
+            <section id="loading-state" class="hidden flex-col items-center justify-center h-full min-h-[400px]">
+                <i class="fa-solid fa-circle-notch fa-spin text-5xl text-primary mb-6"></i>
+                <h3 id="loading-message" class="text-xl text-white font-medium mb-2">Analyzing response...</h3>
+                <p class="text-gray-400">Please wait while the AI processes your answer.</p>
+            </section>
+
+            <!-- STATE 4: Final Report -->
+            <section id="report-state" class="hidden transition-opacity duration-300 report-container pb-12">
+                <header class="mb-10 text-center flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-full bg-success/20 text-success flex items-center justify-center mb-4">
+                        <i class="fa-solid fa-flag-checkered text-3xl"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold text-white mb-4">Interview Completed</h1>
+                    
+                    <div class="score-circle mb-6">
+                        <span id="report-score" class="score-value">0.0</span>
+                        <span class="score-max">/ 10</span>
+                    </div>
+                    
+                    <div class="flex gap-4">
+                        <button type="button" id="download-pdf-btn" class="btn btn-secondary flex items-center gap-2">
+                            <i class="fa-solid fa-file-pdf"></i> Download PDF
+                        </button>
+                        <a href="/pages/dashboard.html" class="btn bg-gray-700 hover:bg-gray-600 text-white">
+                            Back to Dashboard
+                        </a>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="report-section">
+                        <h3><i class="fa-solid fa-align-left"></i> Summary</h3>
+                        <p id="report-summary" class="text-slate-300 leading-relaxed whitespace-pre-wrap"></p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="report-section">
+                            <h3 class="text-success"><i class="fa-solid fa-arrow-trend-up"></i> Strengths</h3>
+                            <ul id="report-strengths" class="report-list"></ul>
+                        </div>
+                        <div class="report-section">
+                            <h3 class="text-warning"><i class="fa-solid fa-arrow-trend-down"></i> Areas for Improvement</h3>
+                            <ul id="report-weaknesses" class="report-list"></ul>
+                        </div>
+                    </div>
+
+                    <div class="report-section">
+                        <h3><i class="fa-solid fa-lightbulb"></i> Recommendations</h3>
+                        <p id="report-recommendations" class="text-slate-300 leading-relaxed whitespace-pre-wrap"></p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="report-section">
+                            <h3><i class="fa-solid fa-briefcase"></i> Career Readiness</h3>
+                            <p id="report-readiness" class="text-slate-300"></p>
+                        </div>
+                        <div class="report-section">
+                            <h3><i class="fa-solid fa-list-check"></i> Next Steps</h3>
+                            <ul id="report-next-steps" class="report-list"></ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/config.js"></script>
+    <script src="../js/constants.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/router.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/interview.js"></script>
+</body>
+</html>

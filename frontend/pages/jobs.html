@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jobs - CareerPilotAI</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#8B5CF6',
+                        accent: '#06B6D4',
+                        dark: '#0F172A',
+                        success: '#22C55E',
+                        warning: '#F59E0B',
+                        danger: '#EF4444'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/resume.css"> <!-- Reuse modals/buttons -->
+    <link rel="stylesheet" href="../css/jobs.css">
+</head>
+<body class="bg-dark text-slate-50 antialiased dashboard-layout">
+
+    <!-- Sidebar Container -->
+    <div id="sidebar-container"></div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <!-- Top Navbar Container -->
+        <div id="navbar-container"></div>
+
+        <main class="flex-1 p-6 lg:p-10 overflow-y-auto">
+            <!-- Page Header -->
+            <header class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-white mb-2">Job Listings</h1>
+                    <p class="text-gray-400">Manage, search, and import your target job opportunities.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <button type="button" id="toggle-create-btn" class="btn bg-gray-800 hover:bg-gray-700 text-white flex items-center gap-2 border border-gray-700 focus-visible:ring-2 focus-visible:ring-primary">
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i> Create Job
+                    </button>
+                    <button type="button" id="import-jobs-btn" class="btn btn-secondary flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-secondary">
+                        <i class="fa-solid fa-cloud-arrow-down" aria-hidden="true"></i> Auto Import
+                    </button>
+                </div>
+            </header>
+
+            <!-- Create Job Panel -->
+            <section id="create-job-panel" class="collapsible-panel mb-8 glass-panel p-6" aria-label="Create Job Form">
+                <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
+                    <h2 class="text-xl font-semibold text-white"><i class="fa-solid fa-file-signature text-primary mr-2" aria-hidden="true"></i> Create New Job Listing</h2>
+                    <button type="button" id="close-create-btn" class="text-gray-400 hover:text-white" aria-label="Close create panel">
+                        <i class="fa-solid fa-times" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <form id="create-job-form">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                        <div class="form-group md:col-span-2">
+                            <label for="job_title" class="required">Job Title</label>
+                            <input type="text" id="job_title" name="job_title" class="form-control" required placeholder="e.g. Senior Software Engineer">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="company_name">Company Name</label>
+                            <input type="text" id="company_name" name="company_name" class="form-control" placeholder="e.g. Google">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="job_type">Job Type</label>
+                            <input type="text" id="job_type" name="job_type" class="form-control" placeholder="e.g. Full-time, Remote, Contract">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="location">Location</label>
+                            <input type="text" id="location" name="location" class="form-control" placeholder="e.g. San Francisco, CA">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="industry">Industry</label>
+                            <input type="text" id="industry" name="industry" class="form-control" placeholder="e.g. Technology">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="salary_from">Salary From</label>
+                            <input type="number" id="salary_from" name="salary_from" class="form-control" min="0" placeholder="e.g. 100000">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="salary_to">Salary To</label>
+                            <input type="number" id="salary_to" name="salary_to" class="form-control" min="0" placeholder="e.g. 150000">
+                        </div>
+
+                        <div class="form-group md:col-span-2">
+                            <label for="apply_url">Apply URL</label>
+                            <input type="url" id="apply_url" name="apply_url" class="form-control" placeholder="https://example.com/careers/...">
+                        </div>
+
+                        <div class="form-group md:col-span-2">
+                            <label for="job_description" class="required">Job Description</label>
+                            <textarea id="job_description" name="job_description" class="form-control" required placeholder="Full job description text..."></textarea>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-4 mt-4 border-t border-gray-800 pt-6">
+                        <button type="button" id="cancel-create-btn" class="btn bg-gray-700 hover:bg-gray-600 text-white">Cancel</button>
+                        <button type="submit" id="submit-job-btn" class="btn btn-primary flex items-center gap-2">
+                            <i class="fa-solid fa-save" aria-hidden="true"></i> Save Job
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Search and Controls -->
+            <div class="mb-8 flex flex-col md:flex-row gap-4 items-center">
+                <div class="relative flex-1 w-full">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-search text-gray-400"></i>
+                    </div>
+                    <input type="text" id="search-input" class="w-full bg-gray-800 border border-gray-700 text-white rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" placeholder="Search semantic keywords, titles, companies...">
+                </div>
+                <div id="search-loading" class="hidden text-primary">
+                    <i class="fa-solid fa-spinner fa-spin text-xl" aria-hidden="true"></i>
+                </div>
+            </div>
+
+            <!-- Jobs List Container -->
+            <div id="jobs-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 relative min-h-[200px]">
+                <!-- Loading State -->
+                <div class="absolute inset-0 flex items-center justify-center bg-dark z-10 hidden" id="jobs-loading-overlay">
+                    <div class="flex flex-col items-center gap-3">
+                        <i class="fa-solid fa-circle-notch fa-spin text-4xl text-primary"></i>
+                        <span class="text-gray-400">Loading jobs...</span>
+                    </div>
+                </div>
+                <!-- Populated by JS -->
+            </div>
+            
+            <!-- Pagination Container -->
+            <div id="pagination-container" class="mt-8 flex items-center justify-between"></div>
+
+        </main>
+    </div>
+
+    <!-- Modals -->
+
+    <!-- View Details Modal -->
+    <div id="details-modal" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="details-modal-title">
+        <div class="modal-content relative max-w-3xl w-full">
+            <button type="button" class="modal-close" aria-label="Close modal">
+                <i class="fa-solid fa-times" aria-hidden="true"></i>
+            </button>
+            <div class="mb-6 border-b border-gray-800 pb-4">
+                <h3 id="details-modal-title" class="text-2xl font-bold text-white mb-1">Job Details</h3>
+                <p id="details-modal-subtitle" class="text-gray-400 text-sm">Loading...</p>
+            </div>
+            <div id="details-modal-body" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                <!-- Populated dynamically by JS based on backend fields -->
+            </div>
+            <div class="mt-6 pt-4 border-t border-gray-800 flex justify-between items-center">
+                <a href="#" id="modal-apply-btn" target="_blank" rel="noopener noreferrer" class="btn btn-primary hidden focus-visible:ring-2 focus-visible:ring-primary">
+                    <i class="fa-solid fa-external-link-alt mr-2" aria-hidden="true"></i> Apply Now
+                </a>
+                <button type="button" class="btn bg-gray-700 hover:bg-gray-600 text-white modal-close-internal ml-auto focus-visible:ring-2 focus-visible:ring-gray-400">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
+        <div class="modal-content relative">
+            <button type="button" class="modal-close" aria-label="Close modal">
+                <i class="fa-solid fa-times" aria-hidden="true"></i>
+            </button>
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-trash-can text-2xl" aria-hidden="true"></i>
+                </div>
+                <h3 id="delete-modal-title" class="text-xl font-bold text-white mb-2">Delete Job</h3>
+                <p class="text-gray-400">Are you sure you want to remove this job listing? This action cannot be undone.</p>
+            </div>
+            <div class="flex gap-4 justify-center">
+                <button type="button" class="btn modal-cancel bg-gray-700 hover:bg-gray-600 text-white px-6">Cancel</button>
+                <button type="button" id="confirm-delete-btn" class="btn bg-red-500 hover:bg-red-600 text-white px-6 flex items-center gap-2">
+                    <i class="fa-solid fa-trash" aria-hidden="true"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/config.js"></script>
+    <script src="../js/constants.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/router.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/jobs.js"></script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - CareerPilotAI</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#8B5CF6',
+                        accent: '#06B6D4',
+                        dark: '#0F172A',
+                        success: '#22C55E',
+                        warning: '#F59E0B',
+                        danger: '#EF4444'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/profile.css">
+</head>
+<body class="bg-dark text-slate-50 antialiased dashboard-layout">
+
+    <!-- Sidebar Container -->
+    <div id="sidebar-container"></div>
+
+    <!-- Main Content Area -->
+    <div class="main-content flex flex-col h-screen">
+        <!-- Top Navbar Container -->
+        <div id="navbar-container"></div>
+
+        <main class="flex-1 p-6 lg:p-10 overflow-y-auto" id="main-scroll-area">
+            
+            <!-- Loading State -->
+            <div id="loading-state" class="flex flex-col items-center justify-center h-full min-h-[400px]">
+                <i class="fa-solid fa-circle-notch fa-spin text-5xl text-primary mb-6"></i>
+                <h3 class="text-xl text-white font-medium mb-2">Loading profile...</h3>
+                <p class="text-gray-400 text-sm">Retrieving your account details securely.</p>
+            </div>
+            
+            <!-- Profile Content -->
+            <div id="profile-content" class="profile-container hidden transition-opacity duration-300">
+                <header class="profile-header">
+                    <div id="profile-avatar" class="profile-avatar" aria-hidden="true">--</div>
+                    <h1 id="profile-name-header" class="text-3xl font-bold text-white">Loading...</h1>
+                    <p id="profile-role-badge" class="mt-3 px-4 py-1 bg-primary/20 text-primary border border-primary/30 rounded-full text-sm font-medium uppercase tracking-widest hidden"></p>
+                </header>
+
+                <div class="profile-card">
+                    <h2 class="profile-card-title"><i class="fa-solid fa-address-card text-accent"></i> User Information</h2>
+                    <div class="profile-grid">
+                        <div class="profile-field">
+                            <span class="profile-field-label">Full Name</span>
+                            <span id="val-full-name" class="profile-field-value empty-state">Not available</span>
+                        </div>
+                        <div class="profile-field">
+                            <span class="profile-field-label">Email Address</span>
+                            <span id="val-email" class="profile-field-value empty-state">Not available</span>
+                        </div>
+                        <div class="profile-field">
+                            <span class="profile-field-label">System Role</span>
+                            <span id="val-role" class="profile-field-value empty-state">Not available</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-card">
+                    <h2 class="profile-card-title"><i class="fa-solid fa-shield-halved text-secondary"></i> Account Information</h2>
+                    <div class="profile-grid">
+                        <div class="profile-field">
+                            <span class="profile-field-label">Account ID</span>
+                            <span id="val-id" class="profile-field-value empty-state">Not available</span>
+                        </div>
+                        <div class="profile-field">
+                            <span class="profile-field-label">Account Status</span>
+                            <span id="val-status" class="profile-field-value empty-state">Not available</span>
+                        </div>
+                        <div class="profile-field">
+                            <span class="profile-field-label">Member Since</span>
+                            <span id="val-created" class="profile-field-value empty-state">Not available</span>
+                        </div>
+                        <div class="profile-field">
+                            <span class="profile-field-label">Last Updated</span>
+                            <span id="val-updated" class="profile-field-value empty-state">Not available</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-8">
+                    <button type="button" id="logout-btn" class="btn bg-gray-800 hover:bg-gray-700 text-red-400 border border-gray-700 flex items-center gap-2 mx-auto focus-visible:ring-2 focus-visible:ring-red-400">
+                        <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> Sign Out Securely
+                    </button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/config.js"></script>
+    <script src="../js/constants.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/router.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/profile.js"></script>
+</body>
+</html>

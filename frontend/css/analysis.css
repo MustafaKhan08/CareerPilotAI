@@ -1,0 +1,98 @@
+/* Analysis Module Styles */
+
+.score-badge {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+
+.score-badge.high {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--success);
+    border: 2px solid var(--success);
+}
+
+.score-badge.medium {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+    border: 2px solid var(--warning);
+}
+
+.score-badge.low {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    border: 2px solid var(--danger);
+}
+
+.score-badge.neutral {
+    background: rgba(156, 163, 175, 0.1);
+    color: #9CA3AF; /* Gray-400 */
+    border: 2px solid #4B5563; /* Gray-600 */
+}
+
+.analysis-card {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--glass-border);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    transition: all 0.2s;
+}
+
+.analysis-card:hover {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* History List Item */
+.history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid var(--glass-border);
+    transition: background 0.2s;
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.history-item:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Details Modal Specifics */
+.detail-section {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.detail-section h4 {
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.detail-section p, .detail-section ul {
+    color: var(--text-main);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+.detail-section ul {
+    list-style-type: disc;
+    padding-left: 1.25rem;
+}

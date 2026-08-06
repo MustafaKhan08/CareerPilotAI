@@ -1,0 +1,37 @@
+<nav class="glass-panel w-full p-4 flex justify-between items-center z-50 sticky top-0 border-b border-gray-800">
+    <div class="flex items-center gap-2">
+        <i class="fa-solid fa-plane-departure text-accent text-2xl"></i>
+        <span class="text-xl font-bold text-white tracking-wide">CareerPilot<span class="text-primary">AI</span></span>
+    </div>
+    
+    <div class="hidden md:flex items-center gap-6" id="navbar-links">
+        <!-- Will be dynamically populated based on auth status -->
+    </div>
+    
+    <button class="md:hidden text-white" id="mobile-menu-btn">
+        <i class="fa-solid fa-bars text-xl"></i>
+    </button>
+</nav>
+
+<script>
+    // Logic to update navbar based on auth state
+    (function() {
+        const linksContainer = document.getElementById('navbar-links');
+        
+        if (storage.isAuthenticated()) {
+            linksContainer.innerHTML = `
+                <a href="${CONSTANTS.ROUTES.DASHBOARD}" class="text-gray-300 hover:text-white transition">Dashboard</a>
+                <button onclick="router.logout()" class="btn btn-primary ml-4">
+                    <i class="fa-solid fa-sign-out-alt mr-2"></i> Logout
+                </button>
+            `;
+        } else {
+            linksContainer.innerHTML = `
+                <a href="${CONSTANTS.ROUTES.LOGIN}" class="text-gray-300 hover:text-white transition">Login</a>
+                <a href="${CONSTANTS.ROUTES.REGISTER}" class="btn btn-primary hover-scale ml-4">
+                    Sign Up
+                </a>
+            `;
+        }
+    })();
+</script>

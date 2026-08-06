@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 
 from app.analyses.router import router as analyses_router
@@ -54,6 +55,19 @@ app = FastAPI(
         "persistAuthorization": True,
     },
 )
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # =====================================================
 # REGISTER ROUTERS

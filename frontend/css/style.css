@@ -1,0 +1,81 @@
+/* Global Styles and Tailwind Overrides */
+
+:root {
+    --bg-color: #0F172A; /* Slate 900 */
+    --primary: #3B82F6;  /* Blue 500 */
+    --secondary: #8B5CF6; /* Violet 500 */
+    --accent: #06B6D4;    /* Cyan 500 */
+    --success: #22C55E;   /* Green 500 */
+    --warning: #F59E0B;   /* Amber 500 */
+    --danger: #EF4444;    /* Red 500 */
+    --text-main: #F8FAFC; /* Slate 50 */
+    --text-muted: #94A3B8; /* Slate 400 */
+    --glass-bg: rgba(30, 41, 59, 0.7); /* Slate 800 with opacity */
+    --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif; /* Recommended Google Font */
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Glassmorphism Utilities */
+.glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 1rem;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Smooth Hover Animations */
+.hover-scale {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.hover-scale:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+/* Base button styles to ensure consistency with Tailwind */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2563EB; /* Blue 600 */
+}
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-color);
+}
+::-webkit-scrollbar-thumb {
+    background: #334155; /* Slate 700 */
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #475569; /* Slate 600 */
+}

@@ -17,11 +17,13 @@ from sqlalchemy.orm import Session
 
 from app.auth.security import get_current_user
 from app.db.database import get_db
+from math import ceil
+
 from app.jobs.schema import (
     JobCreate,
     JobResponse,
-    JobSearchResponse,
     JobSummaryResponse,
+    PaginatedResponse,
 )
 from app.jobs.service import (
     create_job,
@@ -44,7 +46,7 @@ router = APIRouter(
 
 @router.get(
     "",
-    response_model=list[JobResponse],
+    response_model=PaginatedResponse[JobResponse],
     status_code=status.HTTP_200_OK,
 )
 def list_jobs(
@@ -53,19 +55,44 @@ def list_jobs(
         User,
         Depends(get_current_user),
     ],
-) -> list[JobResponse]:
+    page: Annotated[
+        int,
+        Query(
+            ge=1,
+            description="Page number",
+        ),
+    ] = 1,
+    limit: Annotated[
+        int,
+        Query(
+            ge=1,
+            le=100,
+            description="Results per page",
+        ),
+    ] = 20,
+) -> PaginatedResponse[JobResponse]:
     """
-    Return all available jobs.
+    Return all available jobs with pagination.
     """
 
-    jobs = get_all_jobs(
+    result = get_all_jobs(
         db=db,
+        page=page,
+        limit=limit,
     )
 
-    return [
-        JobResponse.model_validate(job)
-        for job in jobs
-    ]
+    total = result["total"]
+
+    return PaginatedResponse[JobResponse](
+        items=[
+            JobResponse.model_validate(job)
+            for job in result["items"]
+        ],
+        page=page,
+        limit=limit,
+        total=total,
+        total_pages=ceil(total / limit) if limit > 0 else 0,
+    )
 
 
 # =====================================================
@@ -74,7 +101,7 @@ def list_jobs(
 
 @router.get(
     "/search",
-    response_model=JobSearchResponse,
+    response_model=PaginatedResponse[JobSummaryResponse],
     status_code=status.HTTP_200_OK,
 )
 async def search_job_listings(
@@ -105,11 +132,11 @@ async def search_job_listings(
         int,
         Query(
             ge=1,
-            le=50,
+            le=100,
             description="Results per page",
         ),
     ] = 20,
-) -> JobSearchResponse:
+) -> PaginatedResponse[JobSummaryResponse]:
     """
     Perform semantic job search.
     """
@@ -121,15 +148,17 @@ async def search_job_listings(
         limit=limit,
     )
 
-    return JobSearchResponse(
-        query=query,
-        total=jobs["total"],
-        page=page,
-        limit=limit,
-        jobs=[
+    total = jobs["total"]
+
+    return PaginatedResponse[JobSummaryResponse](
+        items=[
             JobSummaryResponse.model_validate(job)
             for job in jobs["jobs"]
         ],
+        page=page,
+        limit=limit,
+        total=total,
+        total_pages=ceil(total / limit) if limit > 0 else 0,
     )
 
 

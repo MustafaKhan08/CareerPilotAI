@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Career Mentor - CareerPilotAI</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#8B5CF6',
+                        accent: '#06B6D4',
+                        dark: '#0F172A',
+                        success: '#22C55E',
+                        warning: '#F59E0B',
+                        danger: '#EF4444'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/resume.css"> <!-- Reuse modal structures -->
+    <link rel="stylesheet" href="../css/mentor.css">
+</head>
+<body class="bg-dark text-slate-50 antialiased dashboard-layout">
+
+    <!-- Sidebar Container -->
+    <div id="sidebar-container"></div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <!-- Top Navbar Container -->
+        <div id="navbar-container"></div>
+
+        <main class="flex-1 p-4 lg:p-8 flex flex-col h-full">
+            <!-- Page Header -->
+            <header class="mb-6 flex justify-between items-end flex-shrink-0">
+                <div>
+                    <h1 class="text-3xl font-bold text-white mb-2">AI Career Mentor</h1>
+                    <p class="text-gray-400 text-sm md:text-base">Ask questions about interviews, career paths, and negotiations.</p>
+                </div>
+                <div>
+                    <button type="button" id="clear-chat-btn" class="btn bg-gray-800 hover:bg-gray-700 text-red-400 border border-gray-700 focus-visible:ring-2 focus-visible:ring-red-400 flex items-center gap-2 hidden">
+                        <i class="fa-solid fa-trash-can" aria-hidden="true"></i> <span class="hidden md:inline">Clear History</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Chat Container -->
+            <div class="chat-container">
+                <!-- Chat History Area -->
+                <div id="chat-history" class="chat-history-area" aria-live="polite">
+                    <!-- Loading State -->
+                    <div id="chat-loading" class="flex-1 flex flex-col items-center justify-center text-gray-400 hidden">
+                        <i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3 text-secondary"></i>
+                        <p>Loading conversation history...</p>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="chat-empty-state" class="flex-1 flex flex-col items-center justify-center text-center px-4 hidden">
+                        <div class="w-16 h-16 rounded-full bg-secondary/20 text-secondary flex items-center justify-center mb-4 border border-secondary/30">
+                            <i class="fa-solid fa-robot text-2xl" aria-hidden="true"></i>
+                        </div>
+                        <h3 class="text-xl font-medium text-white mb-2">Welcome to your AI Career Mentor</h3>
+                        <p class="text-gray-400 max-w-md mb-6">I can help you prepare for interviews, review salary negotiation strategies, and plan your career trajectory.</p>
+                        <div class="flex flex-wrap gap-2 justify-center max-w-lg">
+                            <button type="button" class="suggestion-btn px-4 py-2 rounded-full bg-gray-800 border border-gray-700 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition">How do I negotiate my first salary?</button>
+                            <button type="button" class="suggestion-btn px-4 py-2 rounded-full bg-gray-800 border border-gray-700 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition">What are common questions for a Software Engineer?</button>
+                            <button type="button" class="suggestion-btn px-4 py-2 rounded-full bg-gray-800 border border-gray-700 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition">Help me transition from QA to Developer.</button>
+                        </div>
+                    </div>
+
+                    <!-- Messages will be appended here -->
+                    <div id="messages-container" class="flex flex-col gap-6 w-full"></div>
+
+                    <!-- Typing Indicator -->
+                    <div id="typing-indicator" class="chat-message assistant hidden">
+                        <div class="chat-avatar" aria-hidden="true">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <div class="chat-bubble">
+                            <div class="typing-indicator">
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input Area -->
+                <form id="chat-form" class="chat-input-area">
+                    <textarea id="chat-input" class="chat-input" placeholder="Type your message here... (Shift+Enter for new line)" rows="1" aria-label="Message Input"></textarea>
+                    <button type="submit" id="send-btn" class="chat-send-btn bg-primary text-white hover:bg-blue-600 focus-visible:ring-2 focus-visible:ring-white" aria-label="Send Message" disabled>
+                        <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+                    </button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+
+    <!-- Clear History Confirmation Modal -->
+    <div id="clear-modal" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="clear-modal-title">
+        <div class="modal-content relative">
+            <button type="button" class="modal-close" aria-label="Close modal">
+                <i class="fa-solid fa-times" aria-hidden="true"></i>
+            </button>
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-trash-can text-2xl" aria-hidden="true"></i>
+                </div>
+                <h3 id="clear-modal-title" class="text-xl font-bold text-white mb-2">Clear Conversation</h3>
+                <p class="text-gray-400">Are you sure you want to delete all messages? This action cannot be undone.</p>
+            </div>
+            <div class="flex gap-4 justify-center">
+                <button type="button" class="btn modal-cancel bg-gray-700 hover:bg-gray-600 text-white px-6">Cancel</button>
+                <button type="button" id="confirm-clear-btn" class="btn bg-red-500 hover:bg-red-600 text-white px-6 flex items-center gap-2">
+                    <i class="fa-solid fa-trash" aria-hidden="true"></i> Clear
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/config.js"></script>
+    <script src="../js/constants.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/router.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/mentor.js"></script>
+</body>
+</html>

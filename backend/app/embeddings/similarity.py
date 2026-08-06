@@ -104,10 +104,9 @@ class SimilarityEngine:
         self,
         query_embedding: np.ndarray,
         *,
-        top_k: int = 20,
         page: int = 1,
         limit: int = 20,
-    ) -> list[dict[str, float | int]]:
+    ) -> tuple[list[dict[str, float | int]], int]:
         """
         Perform semantic similarity search.
 
@@ -115,9 +114,6 @@ class SimilarityEngine:
         ----------
         query_embedding:
             A single embedding vector.
-
-        top_k:
-            Number of candidates to retrieve before pagination.
 
         page:
             1-based page number.
@@ -127,10 +123,9 @@ class SimilarityEngine:
 
         Returns
         -------
-        List of dictionaries containing:
-
-        - job_id
-        - similarity_score
+        Tuple containing:
+        - List of dictionaries with job_id and similarity_score
+        - Total number of matches (the entire dataset size)
         """
 
         if page < 1:
@@ -192,29 +187,12 @@ class SimilarityEngine:
         )
 
         if len(similarities) == 0:
-            return []
+            return [], 0
 
-        top_k = min(
-            top_k,
-            len(similarities),
-        )
-
-        candidate_indices = np.argpartition(
-            similarities,
-            -top_k,
-        )[-top_k:]
-
-        candidate_scores = similarities[
-            candidate_indices
-        ]
-
-        sorted_order = np.argsort(
-            candidate_scores
-        )[::-1]
-
-        sorted_indices = candidate_indices[
-            sorted_order
-        ]
+        # Sort the entire dataset to allow unrestricted pagination
+        sorted_indices = np.argsort(similarities)[::-1]
+        
+        total = len(sorted_indices)
 
         start = (page - 1) * limit
         end = start + limit
@@ -240,7 +218,7 @@ class SimilarityEngine:
                 }
             )
 
-        return results
+        return results, total
 
 
 # ==========================================================
