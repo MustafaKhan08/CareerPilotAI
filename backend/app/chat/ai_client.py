@@ -184,16 +184,6 @@ class ChatAIClient:
             "User-Agent": settings.user_agent,
         }
 
-        if settings.openrouter_site_url:
-            headers["HTTP-Referer"] = (
-                settings.openrouter_site_url
-            )
-
-        if settings.openrouter_site_name:
-            headers["X-Title"] = (
-                settings.openrouter_site_name
-            )
-
         return headers
 
     def _build_payload(
@@ -222,7 +212,7 @@ class ChatAIClient:
 
         try:
             payload = response.json()
-            logger.error("OpenRouter Response: %s", payload)
+            logger.debug("AI response received successfully.")
 
         except ValueError as exc:
             raise ChatClientResponseError(
@@ -265,22 +255,25 @@ class ChatAIClient:
 
         return content.strip()
 
+   
+
     def _validate_config(self) -> None:
-        """
-        Validate the required OpenRouter configuration.
-        """
+        """Validate the required API configuration."""
 
         if not settings.openrouter_base_url:
             raise ChatClientConfigurationError(
-                "OpenRouter base URL is not configured."
+                "API base URL is not configured."
             )
 
         if (
             not settings.openrouter_api_keys
-            or not settings.openrouter_api_keys[0].strip()
+            or not any(
+                key.strip()
+                for key in settings.openrouter_api_keys
+            )
         ):
             raise ChatClientConfigurationError(
-                "No OpenRouter API key is configured."
+                "No API key is configured."
             )
 
         if (
@@ -288,17 +281,14 @@ class ChatAIClient:
             or not settings.ai_models[0].strip()
         ):
             raise ChatClientConfigurationError(
-                "No OpenRouter model is configured."
+                "No AI model is configured."
             )
 
     def _validate_messages(
         self,
         messages: list[dict[str, str]],
     ) -> None:
-        """
-        Validate chat messages before sending them
-        to OpenRouter.
-        """
+        """Validate chat messages before sending them."""
 
         if not isinstance(messages, list):
             raise ChatClientResponseError(
@@ -311,7 +301,6 @@ class ChatAIClient:
             )
 
         for message in messages:
-
             if not isinstance(message, dict):
                 raise ChatClientResponseError(
                     "Each message must be a dictionary."
@@ -320,18 +309,12 @@ class ChatAIClient:
             role = message.get("role")
             content = message.get("content")
 
-            if (
-                not isinstance(role, str)
-                or not role.strip()
-            ):
+            if not isinstance(role, str) or not role.strip():
                 raise ChatClientResponseError(
                     "Every message must include a valid role."
                 )
 
-            if (
-                not isinstance(content, str)
-                or not content.strip()
-            ):
+            if not isinstance(content, str) or not content.strip():
                 raise ChatClientResponseError(
                     "Every message must include valid content."
                 )

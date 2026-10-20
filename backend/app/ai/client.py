@@ -365,14 +365,6 @@ class OpenRouterClient:
             "User-Agent": settings.user_agent,
         }
 
-        site_url = settings.openrouter_site_url
-        site_name = settings.openrouter_site_name
-
-        if site_url:
-            headers["HTTP-Referer"] = site_url
-        if site_name:
-            headers["X-Title"] = site_name
-
         return headers
 
     def _build_payload(
@@ -383,21 +375,25 @@ class OpenRouterClient:
         max_tokens: int,
     ) -> dict[str, Any]:
         """
-        Constructs the OpenRouter request payload.
+        Constructs the NVIDIA request payload.
         """
         return {
             "model": model,
             "messages": messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
+            "reasoning_effort": "none",
         }
-
     def _validate_config(self) -> None:
-        """
-        Validates presence of essential runtime parameters.
-        """
-        if not settings.openrouter_api_keys or not settings.ai_models:
-            raise AINoAvailableKeyError("API keys or AI models are not configured.")
+        """Validate required API configuration."""
+    if (
+        not settings.openrouter_api_keys
+        or not any(key.strip() for key in settings.openrouter_api_keys)
+        or not settings.ai_models
+    ):
+        raise AINoAvailableKeyError(
+            "API keys or AI models are not configured."
+        )
 
     def _validate_response_schema(self, payload: dict[str, Any]) -> dict[str, Any]:
         """

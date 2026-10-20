@@ -3,11 +3,14 @@ __pycache__/
 *.py[cod]
 *.pyo
 
-# Virtual Environment
+# Virtual Environments
 .venv/
+venv/
 
 # Environment Variables
 .env
+.env.*
+!.env.example
 
 # IDE
 .vscode/
@@ -17,11 +20,21 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-# Testing
+# Testing and Coverage
 .pytest_cache/
+.coverage
+htmlcov/
+
+# Python Build Artifacts
+build/
+dist/
+*.egg-info/
 
 # Migrations Cache
 alembic/__pycache__/
 
 # Logs
 *.log
+
+# Local Embeddings
+data/embeddings/
