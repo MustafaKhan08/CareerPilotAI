@@ -116,12 +116,17 @@ const dashboard = {
                 api.listJobs().catch(() => [])
             ]);
 
-            // Update Stats
-            document.getElementById('stat-resumes').textContent = resumes.length;
-            document.getElementById('stat-jobs').textContent = jobs.length;
-            
-            // Stats without backend endpoints currently get an N/A professional state
-            document.getElementById('stat-interviews').textContent = "—"; 
+           // Update dashboard statistics
+            const resumesStat = document.getElementById('stat-resumes');
+            const jobsStat = document.getElementById('stat-jobs');
+
+            if (resumesStat) {
+                resumesStat.textContent = resumes.length;
+            }
+
+            if (jobsStat) {
+                jobsStat.textContent = Array.isArray(jobs) ? jobs.length : 0;
+            }
 
             // Find the true latest resume by sorting if created_at is available
             const latestResume = this.getLatestResume(resumes);
@@ -186,62 +191,103 @@ const dashboard = {
         `;
     },
 
+   
     /**
      * Fetches and renders the latest analysis for the most recent resume
      */
     async renderLatestAnalysis(latestResume) {
         const container = document.getElementById('latest-analysis-container');
-        
+
+        if (!container) {
+            console.error("Latest analysis container not found.");
+            return;
+        }
+
         if (!latestResume) {
             this.renderEmptyAnalysis(container);
             return;
         }
-        
+
         try {
             const analysis = await api.getLatestAnalysis(latestResume.id);
-            
+
             if (!analysis) {
                 this.renderEmptyAnalysis(container);
                 return;
             }
 
-            // Render snippet of analysis
+            // Ensure the analysis is completed before displaying its results.
+            if (analysis.analysis_status &&
+                analysis.analysis_status !== "completed") {
+                this.renderEmptyAnalysis(container);
+                return;
+            }
+
+            // Read the actual ATS score property returned by the API.
+            const rawScore = analysis.ats_score;
+            const atsScore = Number(rawScore);
+
+            const hasValidScore =
+                rawScore !== null &&
+                rawScore !== undefined &&
+                rawScore !== "" &&
+                Number.isFinite(atsScore) &&
+                atsScore >= 0 &&
+                atsScore <= 100;
+
+            const scoreText = hasValidScore
+                ? `${atsScore}/100`
+                : "N/A";
+
+            const scoreWidth = hasValidScore ? atsScore : 0;
+
+            const summary = analysis.summary ||
+                "Analysis complete. Click to view detailed feedback on strengths and areas for improvement.";
+
+            // Render the analysis snippet.
             container.innerHTML = `
                 <div class="mb-3">
                     <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-medium text-gray-300">Overall Score</span>
-                        <span class="text-accent font-bold">${analysis.score || 'N/A'}/100</span>
+                        <span class="text-sm font-medium text-gray-300">
+                            Overall Score
+                        </span>
+                        <span class="text-accent font-bold">
+                            ${scoreText}
+                        </span>
                     </div>
+
                     <div class="w-full bg-gray-700 rounded-full h-2">
-                        <div class="bg-accent h-2 rounded-full" style="width: ${analysis.score || 0}%"></div>
+                        <div
+                            class="bg-accent h-2 rounded-full"
+                            style="width: ${scoreWidth}%"
+                        ></div>
                     </div>
                 </div>
-                <p class="text-sm text-gray-400 line-clamp-2 mt-4">
-                    ${analysis.summary || 'Analysis complete. Click to view detailed feedback on strengths and areas for improvement.'}
-                </p>
+
+                <p class="text-sm text-gray-400 line-clamp-2 mt-4"></p>
+
                 <div class="mt-4">
-                    <a href="/pages/resume.html" class="text-primary text-sm font-medium hover:underline">View Full Analysis &rarr;</a>
+                    <a
+                        href="/pages/resume.html"
+                        class="text-primary text-sm font-medium hover:underline"
+                    >
+                        View Full Analysis &rarr;
+                    </a>
                 </div>
             `;
-            
+
+            // Insert the summary as text to avoid interpreting it as HTML.
+            const summaryElement = container.querySelector("p");
+            if (summaryElement) {
+                summaryElement.textContent = summary;
+            }
+
         } catch (error) {
-            // API might return 404 if no analysis exists
+            console.error("Failed to load latest resume analysis:", error);
             this.renderEmptyAnalysis(container);
         }
     },
-    
-    renderEmptyAnalysis(container) {
-        container.innerHTML = `
-            <div class="text-center py-6">
-                <i class="fa-solid fa-chart-line text-gray-600 text-3xl mb-3"></i>
-                <p class="text-gray-400 text-sm">No analysis available yet.</p>
-                <p class="text-gray-500 text-xs mt-1">Upload a resume to get started.</p>
-            </div>
-        `;
-    }
-};
-
+}
 document.addEventListener('DOMContentLoaded', () => {
-    // Only init if we are on the dashboard
     dashboard.init();
 });

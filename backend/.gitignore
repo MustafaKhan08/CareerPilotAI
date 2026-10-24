@@ -38,3 +38,37 @@ alembic/__pycache__/
 
 # Local Embeddings
 data/embeddings/
+
+# ==========================================
+# Node.js dependencies
+# ==========================================
+
+node_modules/
+
+# ==========================================
+# Database backups and dumps
+# ==========================================
+
+*.sql
+*.dump
+*.backup
+*.bak
+*.sqlite
+*.sqlite3
+*.db
+
+# ==========================================
+# Private keys and certificates
+# ==========================================
+
+*.pem
+*.key
+*.p12
+*.pfx
+
+# ==========================================
+# Local uploads and generated files
+# ==========================================
+
+uploads/
+*.log

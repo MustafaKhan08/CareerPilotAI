@@ -336,10 +336,27 @@ const analysisManager = {
         }
         
         // We only render fields that exist on the backend object. We don't invent fields.
-        const score = analysis.score !== undefined && analysis.score !== null ? analysis.score : 'N/A';
-        const scoreClass = this.getScoreClass(analysis.score);
-        const safeSummary = this.escapeHTML(analysis.summary || 'Analysis complete.');
+        
+
+        const score = analysis.ats_score !== undefined && analysis.ats_score !== null
+            ? analysis.ats_score
+            : 'N/A';
+
+        const numericScore = Number(analysis.ats_score);
+        const scoreClass = analysis.ats_score !== null
+            && analysis.ats_score !== undefined
+            && analysis.ats_score !== ''
+            && Number.isFinite(numericScore)
+            && numericScore >= 0
+            && numericScore <= 100
+                ? this.getScoreClass(numericScore)
+                : 'neutral';
+
+        const safeSummary = this.escapeHTML(
+            analysis.summary || 'Analysis complete.'
+        );
         const date = utils.formatDate(analysis.created_at);
+
 
         let html = `
             <div class="flex flex-col md:flex-row gap-6 items-start">
@@ -556,7 +573,12 @@ const analysisManager = {
                         <h4 class="text-white font-medium">Record ID: <span class="text-gray-400 font-normal text-sm">${this.escapeHTML(analysis.id)}</span></h4>
                         <p class="text-xs text-gray-500">${date}</p>
                     </div>
-                    ${analysis.score !== undefined ? `<div class="score-badge ${this.getScoreClass(analysis.score)} h-10 w-10 text-base">${this.escapeHTML(analysis.score)}</div>` : ''}
+                    
+
+                    ${analysis.ats_score !== undefined && analysis.ats_score !== null
+                        ? `<div class="score-badge ${this.getScoreClass(Number(analysis.ats_score))} h-10 w-10 text-base">${this.escapeHTML(analysis.ats_score)}</div>`
+                        : ''}
+
                 </div>
             `;
 
