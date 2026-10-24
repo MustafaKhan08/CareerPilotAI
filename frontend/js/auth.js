@@ -151,7 +151,7 @@ const auth = {
 
             await api.register(userData);
             
-            utils.showNotification('Registration successful! Please sign in.', 'success');
+            utils.showNotification('Account created! Check your email to verify your address before signing in.', 'success');
             router.navigate(CONSTANTS.ROUTES.LOGIN);
             
         } catch (error) {

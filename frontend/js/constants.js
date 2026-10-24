@@ -29,6 +29,14 @@ const CONSTANTS = {
         REGISTER: "/users/register",
         ME: "/users/me",
 
+        // Email verification
+        VERIFY_EMAIL: "/users/verify-email",
+        RESEND_VERIFICATION: "/users/resend-verification",
+
+        // Password reset
+        FORGOT_PASSWORD: "/users/forgot-password",
+        RESET_PASSWORD: "/users/reset-password",
+
         // Resume
         RESUMES: "/resumes",
 
@@ -61,6 +69,9 @@ const CONSTANTS = {
         MENTOR: "/pages/mentor.html",
         INTERVIEW: "/pages/interview.html",
         PROFILE: "/pages/profile.html",
+        FORGOT_PASSWORD: "/pages/forgot-password.html",
+        RESET_PASSWORD: "/pages/reset-password.html",
+        VERIFY_EMAIL: "/pages/verify-email.html",
     },
 };
 

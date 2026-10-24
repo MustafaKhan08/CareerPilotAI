@@ -15,8 +15,9 @@ const router = {
     checkAuth() {
         const path = window.location.pathname;
         const isAuth = storage.isAuthenticated();
-        
-        // Public routes that authenticated users shouldn't see (e.g., login, register)
+
+        // Routes only unauthenticated users should see (login, register).
+        // Authenticated users hitting these are bounced to the dashboard.
         const publicOnlyRoutes = [
             CONSTANTS.ROUTES.LOGIN,
             CONSTANTS.ROUTES.REGISTER,
@@ -24,20 +25,26 @@ const router = {
             '/index.html'
         ];
 
-        // If authenticated and trying to access a public-only page, redirect
+        // Routes that are always public — never redirect unauthenticated visitors.
+        // Email-flow pages must be accessible without a JWT.
+        const alwaysPublicRoutes = [
+            ...publicOnlyRoutes,
+            CONSTANTS.ROUTES.FORGOT_PASSWORD,
+            CONSTANTS.ROUTES.RESET_PASSWORD,
+            CONSTANTS.ROUTES.VERIFY_EMAIL,
+        ];
+
+        // If authenticated and trying to access a public-only page, redirect to dashboard.
         if (isAuth && publicOnlyRoutes.includes(path)) {
-            // Check if there's a specific redirect requested
             const urlParams = new URLSearchParams(window.location.search);
             const redirectUrl = urlParams.get('redirect');
             this.navigate(redirectUrl || CONSTANTS.ROUTES.DASHBOARD);
             return;
         }
 
-        // If not authenticated and trying to access a protected page, redirect to login
-        if (!isAuth && !publicOnlyRoutes.includes(path)) {
-            // Check if we are really on a page and not just at the root '/'
+        // If not authenticated and trying to access a protected page, redirect to login.
+        if (!isAuth && !alwaysPublicRoutes.includes(path)) {
             if (path !== CONSTANTS.ROUTES.HOME && path !== '/index.html' && path !== '/') {
-                // Save the requested URL to redirect back after login
                 const redirectParam = encodeURIComponent(path + window.location.search);
                 this.navigate(`${CONSTANTS.ROUTES.LOGIN}?redirect=${redirectParam}`);
             }

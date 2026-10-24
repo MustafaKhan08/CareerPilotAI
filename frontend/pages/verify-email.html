@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email - CareerPilotAI</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#8B5CF6',
+                        accent: '#06B6D4',
+                        dark: '#0F172A',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/auth.css">
+</head>
+<body class="bg-dark text-slate-50 antialiased">
+
+    <!-- Navbar Container -->
+    <div id="navbar-container"></div>
+
+    <!-- Main Content -->
+    <main class="flex-grow auth-container" aria-label="Email Verification Section">
+        <section class="glass-panel auth-card relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-primary opacity-20 rounded-full blur-2xl z-0" aria-hidden="true"></div>
+
+            <div class="relative z-10 text-center">
+
+                <!-- Loading state -->
+                <div id="loading-state">
+                    <div class="flex justify-center mb-6">
+                        <i class="fa-solid fa-spinner fa-spin text-5xl text-primary" aria-hidden="true"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold mb-2">Verifying your email…</h1>
+                    <p class="text-gray-400">Please wait a moment.</p>
+                </div>
+
+                <!-- Success state -->
+                <div id="success-state" class="hidden">
+                    <div class="flex justify-center mb-6">
+                        <div class="w-16 h-16 bg-green-500 bg-opacity-20 rounded-full flex items-center justify-center">
+                            <i class="fa-solid fa-circle-check text-3xl text-green-400" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                    <h1 class="text-2xl font-bold mb-2">Email Verified!</h1>
+                    <p class="text-gray-300 mb-8">Your account is confirmed. You can now sign in.</p>
+                    <a href="login.html" class="btn btn-primary auth-btn hover-scale text-center block">Sign In</a>
+                </div>
+
+                <!-- Error state -->
+                <div id="error-state" class="hidden">
+                    <div class="flex justify-center mb-6">
+                        <div class="w-16 h-16 bg-red-500 bg-opacity-20 rounded-full flex items-center justify-center">
+                            <i class="fa-solid fa-triangle-exclamation text-3xl text-red-400" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                    <h1 class="text-2xl font-bold mb-2">Link Invalid or Expired</h1>
+                    <p class="text-gray-400 mb-8">This verification link is invalid or has already been used. Request a new one below.</p>
+                    <a href="login.html" class="btn btn-primary auth-btn hover-scale text-center block mb-3">Sign In</a>
+                    <div id="resend-section" class="mt-4">
+                        <p class="text-gray-400 text-sm mb-3">Need a new verification link?</p>
+                        <div class="flex gap-2">
+                            <input
+                                type="email"
+                                id="resend-email"
+                                class="auth-input flex-1"
+                                placeholder="your@email.com"
+                                autocomplete="email"
+                                aria-label="Email address for resend">
+                            <button id="resend-btn" class="btn btn-primary px-4 py-2 text-sm whitespace-nowrap">
+                                Resend
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Container -->
+    <div id="footer-container"></div>
+
+    <!-- Scripts -->
+    <script src="../js/config.js"></script>
+    <script src="../js/constants.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/router.js"></script>
+    <script src="../js/api.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            utils.loadComponent('navbar-container', '../components/navbar.html');
+            utils.loadComponent('footer-container', '../components/footer.html');
+
+            const loadingState = document.getElementById('loading-state');
+            const successState = document.getElementById('success-state');
+            const errorState = document.getElementById('error-state');
+
+            function showState(state) {
+                [loadingState, successState, errorState].forEach(el => el.classList.add('hidden'));
+                state.classList.remove('hidden');
+            }
+
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+
+            if (!token) {
+                showState(errorState);
+                return;
+            }
+
+            try {
+                await api.verifyEmail(token);
+                showState(successState);
+            } catch (_err) {
+                showState(errorState);
+            }
+
+            // Resend button handler
+            const resendBtn = document.getElementById('resend-btn');
+            resendBtn.addEventListener('click', async () => {
+                const email = document.getElementById('resend-email').value.trim();
+                if (!email) {
+                    utils.showNotification('Please enter your email address.', 'error');
+                    return;
+                }
+
+                resendBtn.disabled = true;
+                resendBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+                try {
+                    await api.resendVerification(email);
+                    utils.showNotification('A new verification link has been sent.', 'success');
+                } catch (err) {
+                    utils.showNotification(err.message || 'Failed to resend. Please try again.', 'error');
+                } finally {
+                    resendBtn.disabled = false;
+                    resendBtn.innerHTML = 'Resend';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

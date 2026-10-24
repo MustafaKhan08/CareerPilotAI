@@ -7,11 +7,16 @@ from sqlalchemy import engine_from_config, pool
 
 from app.core.config import settings
 from app.db.database import Base
-from app.users.model import User
-from app.resumes.model import Resume
-from app.analyses.model import ResumeAnalysis
-from app.jobs.model import Job
-  # Required for Alembic to discover the User model
+
+# Import ALL models so Alembic can discover every table and avoid
+# generating spurious drop-table statements.
+from app.users.model import User  # noqa: F401
+from app.resumes.model import Resume  # noqa: F401
+from app.analyses.model import ResumeAnalysis  # noqa: F401
+from app.jobs.model import Job  # noqa: F401
+from app.chat.model import ChatMessage  # noqa: F401
+from app.interviews.model import InterviewSession, InterviewQuestion, InterviewAnswer  # noqa: F401
+from app.email_tokens.model import EmailToken  # noqa: F401
 
 config = context.config
 

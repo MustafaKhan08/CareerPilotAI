@@ -239,3 +239,97 @@
     color: var(--primary);
     font-weight: bold;
 }
+
+/* ==========================================================
+   Interview Timer
+   ========================================================== */
+
+.interview-timer {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-variant-numeric: tabular-nums;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #94A3B8; /* slate-400 — normal state */
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--glass-border);
+    border-radius: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    transition: color 0.3s, border-color 0.3s;
+}
+
+.interview-timer.warning {
+    color: #F59E0B;          /* amber — ≤60 s */
+    border-color: rgba(245, 158, 11, 0.4);
+    animation: timer-pulse 1s ease-in-out infinite;
+}
+
+.interview-timer.expired {
+    color: #EF4444;          /* red — 0:00 */
+    border-color: rgba(239, 68, 68, 0.4);
+    animation: none;
+}
+
+@keyframes timer-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.6; }
+}
+
+/* ==========================================================
+   Microphone Button
+   ========================================================== */
+
+.mic-btn {
+    position: absolute;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--glass-border);
+    background: rgba(15, 23, 42, 0.8);
+    color: #64748B;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+    font-size: 0.875rem;
+}
+
+.mic-btn:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.mic-btn.listening {
+    color: #EF4444;
+    border-color: rgba(239, 68, 68, 0.6);
+    background: rgba(239, 68, 68, 0.1);
+    animation: mic-pulse 1.2s ease-in-out infinite;
+}
+
+.mic-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    animation: none;
+}
+
+@keyframes mic-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    50%       { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+}
+
+/* ==========================================================
+   Voice Status Line
+   ========================================================== */
+
+.voice-status {
+    font-size: 0.75rem;
+    color: #64748B;
+    min-height: 1rem;
+}
+
+.voice-status.listening { color: #EF4444; }
+.voice-status.error     { color: #F59E0B; }

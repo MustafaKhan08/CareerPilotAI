@@ -247,6 +247,7 @@ def _build_cover_page(
     overall_score: float | None,
     career_readiness: str,
     completed_at: datetime | None,
+    is_partial: bool = False,
 ) -> list[Any]:
     """
     Build the cover page flowables.
@@ -260,9 +261,12 @@ def _build_cover_page(
     # --- Brand header ---
     story.append(Spacer(1, 30 * mm))
     story.append(Paragraph("CareerPilotAI", styles["brand"]))
-    story.append(
-        Paragraph("Interview Assessment Report", styles["cover_subtitle"])
+    subtitle = (
+        "Interview Assessment Report (Partial - Timed Out)"
+        if is_partial
+        else "Interview Assessment Report"
     )
+    story.append(Paragraph(subtitle, styles["cover_subtitle"]))
     story.append(_divider())
     story.append(Spacer(1, 8 * mm))
 
@@ -288,6 +292,9 @@ def _build_cover_page(
         story.append(para)
     for para in _row("Difficulty", difficulty.title()):
         story.append(para)
+    if is_partial:
+        for para in _row("Status", "Timed Out (Partial Report)"):
+            story.append(para)
     for para in _row("Overall Score", score_str, score=True):
         story.append(para)
     for para in _row("Career Readiness", career_readiness):
@@ -402,6 +409,12 @@ def _build_qa_pages(
 
     story: list[Any] = []
 
+    if not questions:
+        story.append(
+            Paragraph("No answers were recorded for this session.", styles["body_text"])
+        )
+        return story
+
     for idx, q in enumerate(questions):
         block: list[Any] = []
 
@@ -460,6 +473,7 @@ def generate_report_pdf(
     recommendations: str,
     next_steps: list[str],
     questions: list[dict[str, str | None]],
+    is_partial: bool = False,
 ) -> bytes:
     """
     Render the interview assessment report PDF in memory
@@ -482,6 +496,7 @@ def generate_report_pdf(
                             - order (int)
                             - text  (str)
                             - answer (str | None)
+        is_partial:       Whether this is a partial report from a timed-out session.
 
     Returns:
         PDF file contents as bytes.
@@ -515,6 +530,7 @@ def generate_report_pdf(
             overall_score=overall_score,
             career_readiness=career_readiness,
             completed_at=completed_at,
+            is_partial=is_partial,
         )
     )
 

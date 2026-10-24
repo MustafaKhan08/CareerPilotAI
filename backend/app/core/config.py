@@ -76,6 +76,22 @@ class Settings(BaseSettings):
 
     user_agent: str = "CareerPilotAI/1.0"
 
+       # ==========================================================
+    # Gmail SMTP Email Configuration
+    # ==========================================================
+
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_email: str = ""
+    smtp_password: str = ""
+
+    # Base URL used when building links inside emails (no trailing slash).
+    frontend_base_url: str = "http://localhost:5500"
+
+    # When true, outgoing emails are redirected to a test recipient.
+    # Set false to send to the actual recipient.
+    email_dev_mode: bool = False
+
     # ==========================================================
     # NVIDIA Embedding Configuration
     # ==========================================================

@@ -10,6 +10,7 @@ from app.db.database import Base
 
 if TYPE_CHECKING:
     from app.chat.model import ChatMessage
+    from app.email_tokens.model import EmailToken
     from app.resumes.model import Resume
 
 
@@ -51,6 +52,13 @@ class User(Base):
         nullable=False,
     )
 
+    is_email_verified: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        server_default=text("false"),
+        nullable=False,
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -74,4 +82,10 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
         order_by="ChatMessage.created_at.asc()",
+    )
+
+    email_tokens: Mapped[list["EmailToken"]] = relationship(
+        "EmailToken",
+        back_populates="user",
+        cascade="all, delete-orphan",
     )

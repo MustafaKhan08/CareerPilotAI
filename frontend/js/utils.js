@@ -6,22 +6,30 @@ const utils = {
      * @param {string} containerId - The ID of the container element.
      * @param {string} componentPath - The path to the HTML component file.
      * @param {Function} callback - Optional callback after the component is loaded.
+     * @returns {Promise<boolean>} Whether the component loaded successfully.
      */
     async loadComponent(containerId, componentPath, callback) {
         try {
             const response = await fetch(componentPath);
-            if (!response.ok) throw new Error(`Failed to load ${componentPath}`);
+            if (!response.ok) {
+                throw new Error(`Request returned HTTP ${response.status}`);
+            }
             const html = await response.text();
             
             const container = document.getElementById(containerId);
             if (container) {
                 container.innerHTML = html;
                 if (callback) callback();
+                return true;
             } else {
-                console.warn(`Container ${containerId} not found.`);
+                throw new Error(`Container ${containerId} not found.`);
             }
         } catch (error) {
-            console.error('Error loading component:', error);
+            console.error(
+                `Error loading component ${componentPath} into #${containerId}:`,
+                error
+            );
+            return false;
         }
     },
 

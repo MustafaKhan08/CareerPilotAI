@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException
 from fastapi import status
@@ -48,6 +48,7 @@ from app.interviews.schema import (
     InterviewReportResponse,
     InterviewSessionStartResponse,
     InterviewStartRequest,
+    InterviewTimeoutResponse,
 )
 from app.resumes.service import (
     get_latest_resume,
@@ -108,6 +109,11 @@ REPORT_DESERIALISATION_ERROR = (
 
 REPORT_NOT_READY_ERROR = (
     "The interview report has not been generated yet."
+)
+
+DEADLINE_EXCEEDED_ERROR = (
+    "Interview time has expired. "
+    "No further answers can be submitted."
 )
 
 
@@ -230,6 +236,9 @@ def _build_session(
     Construct a new InterviewSession model.
     """
 
+    now_utc = datetime.now(timezone.utc)
+    deadline = now_utc + timedelta(minutes=request.duration_minutes)
+
     return InterviewSession(
         user_id=current_user.id,
         resume_id=resume_id,
@@ -240,6 +249,9 @@ def _build_session(
         total_questions=request.total_questions,
         current_question_number=1,
         status=InterviewStatus.IN_PROGRESS,
+        duration_minutes=request.duration_minutes,
+        deadline_at=deadline,
+        started_at=now_utc,
     )
 
 
@@ -333,6 +345,7 @@ def _load_resume_context(
 
 def _build_interview_transcript(
     interview_session: InterviewSession,
+    only_answered: bool = False,
 ) -> str:
     """
     Format all questions, candidate answers, and per-question
@@ -343,6 +356,9 @@ def _build_interview_transcript(
     The session must have been loaded with joinedload on
     questions and their answers (as done by get_interview_session).
 
+    If only_answered is True, questions without candidate answers
+    are excluded from the transcript.
+
     Returns:
         Formatted transcript string.
     """
@@ -350,6 +366,8 @@ def _build_interview_transcript(
     lines: list[str] = []
 
     for question in interview_session.questions:
+        if only_answered and question.answer is None:
+            continue
 
         lines.append(
             f"Question {question.question_order}: "
@@ -465,6 +483,8 @@ def _load_cached_report(
         career_readiness=ai_report.career_readiness,
         next_steps=ai_report.next_steps,
         completed_at=interview_session.completed_at,
+        is_partial=interview_session.status == InterviewStatus.TIMED_OUT,
+        status=interview_session.status,
     )
 
 
@@ -567,6 +587,7 @@ async def start_interview(
             category=ai_question.category,
             difficulty=ai_question.difficulty,
             expected_focus=ai_question.expected_focus,
+            deadline_at=session.deadline_at,
         )
 
     except ChatClientError as exc:
@@ -599,6 +620,18 @@ async def start_interview(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Unable to start interview.",
         ) from exc
+
+
+def _is_deadline_passed(deadline_at: datetime | None) -> bool:
+    """
+    Check if the interview deadline has passed.
+    Handles offset-naive datetimes returned by some DB drivers (e.g. SQLite) safely.
+    """
+    if deadline_at is None:
+        return False
+    if deadline_at.tzinfo is None:
+        deadline_at = deadline_at.replace(tzinfo=timezone.utc)
+    return datetime.now(timezone.utc) > deadline_at
 
 
 # ==========================================================
@@ -675,6 +708,16 @@ async def submit_answer(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=SESSION_NOT_ACTIVE_ERROR,
+        )
+
+    # ----------------------------------------------------------
+    # Step 2b: Guard — deadline must not have passed
+    # ----------------------------------------------------------
+
+    if _is_deadline_passed(interview_session.deadline_at):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=DEADLINE_EXCEEDED_ERROR,
         )
 
     # ----------------------------------------------------------
@@ -770,7 +813,10 @@ async def submit_answer(
         # Step 10: More questions remain — generate next question
         # ----------------------------------------------------------
 
-        if not is_final_question:
+        # Check if deadline passed during AI evaluation of this answer
+        time_expired = _is_deadline_passed(interview_session.deadline_at)
+
+        if not is_final_question and not time_expired:
 
             next_question_number = (
                 current_question.question_order + 1
@@ -843,18 +889,27 @@ async def submit_answer(
             )
 
         # ----------------------------------------------------------
-        # Step 11: Final question — mark session as completed & generate report
+        # Step 11: Final question OR deadline passed during evaluation
         # ----------------------------------------------------------
 
         interview_session.current_question_number = (
             current_question.question_order
         )
-        interview_session.status = InterviewStatus.COMPLETED
+        if time_expired and not is_final_question:
+            interview_session.status = InterviewStatus.TIMED_OUT
+            logger.info(
+                "Deadline expired during evaluation for session %s. Finalized as TIMED_OUT.",
+                session_id,
+            )
+        else:
+            interview_session.status = InterviewStatus.COMPLETED
+
         interview_session.completed_at = datetime.now(timezone.utc)
 
         # Build transcript and generate report
         transcript = _build_interview_transcript(
             interview_session=interview_session,
+            only_answered=True,
         )
 
         report_prompt = build_report_prompt(
@@ -992,10 +1047,14 @@ async def get_or_generate_report(
         )
 
     # ----------------------------------------------------------
-    # Step 2: Guard — interview must be completed
+    # Step 2: Guard — interview must be completed or timed out
     # ----------------------------------------------------------
 
-    if interview_session.status != InterviewStatus.COMPLETED:
+    _report_allowed_statuses = {
+        InterviewStatus.COMPLETED,
+        InterviewStatus.TIMED_OUT,
+    }
+    if interview_session.status not in _report_allowed_statuses:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=SESSION_NOT_COMPLETED_ERROR,
@@ -1082,10 +1141,14 @@ def get_report_pdf(
         )
 
     # ----------------------------------------------------------
-    # Step 2: Guard — interview must be completed
+    # Step 2: Guard — interview must be completed or timed out
     # ----------------------------------------------------------
 
-    if interview_session.status != InterviewStatus.COMPLETED:
+    _report_allowed_statuses = {
+        InterviewStatus.COMPLETED,
+        InterviewStatus.TIMED_OUT,
+    }
+    if interview_session.status not in _report_allowed_statuses:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=SESSION_NOT_COMPLETED_ERROR,
@@ -1127,14 +1190,28 @@ def get_report_pdf(
     # intentionally excluded — the final report summarises them.
     # ----------------------------------------------------------
 
-    questions_payload = [
-        {
-            "order": q.question_order,
-            "text": q.question,
-            "answer": q.answer.answer if q.answer is not None else None,
-        }
-        for q in interview_session.questions
-    ]
+    is_partial_session = interview_session.status == InterviewStatus.TIMED_OUT
+
+    if is_partial_session:
+        # Only include questions that were answered
+        questions_payload = [
+            {
+                "order": q.question_order,
+                "text": q.question,
+                "answer": q.answer.answer,
+            }
+            for q in interview_session.questions
+            if q.answer is not None
+        ]
+    else:
+        questions_payload = [
+            {
+                "order": q.question_order,
+                "text": q.question,
+                "answer": q.answer.answer if q.answer is not None else None,
+            }
+            for q in interview_session.questions
+        ]
 
     # ----------------------------------------------------------
     # Step 6: Render PDF in memory
@@ -1155,6 +1232,7 @@ def get_report_pdf(
             recommendations=ai_report.recommendations,
             next_steps=ai_report.next_steps,
             questions=questions_payload,
+            is_partial=is_partial_session,
         )
 
     except Exception as exc:
@@ -1175,3 +1253,170 @@ def get_report_pdf(
 
     # Step 7: Return bytes — the router wraps this in a Response
     return pdf_bytes
+
+
+# ==========================================================
+# TIMEOUT FINALIZATION
+# ==========================================================
+
+
+async def finalize_timeout(
+    db: Session,
+    current_user: User,
+    session_id: int,
+) -> InterviewTimeoutResponse:
+    """
+    Finalize a timed-out interview session.
+
+    Called by the client when the countdown reaches zero.
+    This is an idempotent operation — if the session has already
+    been marked TIMED_OUT or COMPLETED, it returns success without
+    repeating the AI report generation.
+
+    Workflow
+    --------
+    1. Load session — verify ownership.
+    2. If already COMPLETED or TIMED_OUT with a cached report → return OK.
+    3. If IN_PROGRESS → mark TIMED_OUT, generate partial report from
+       submitted answers only, persist, commit.
+    4. Any other status → 409.
+    """
+
+    logger.info(
+        "Timeout finalization requested for session %s by user %s.",
+        session_id,
+        current_user.id,
+    )
+
+    interview_session = get_interview_session(
+        db=db,
+        session_id=session_id,
+        current_user=current_user,
+    )
+
+    if interview_session is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=SESSION_NOT_FOUND_ERROR,
+        )
+
+    # Already finalized — idempotent response
+    if interview_session.status in (
+        InterviewStatus.COMPLETED,
+        InterviewStatus.TIMED_OUT,
+    ):
+        logger.info(
+            "Session %s already finalized (status=%s). Returning OK.",
+            session_id,
+            interview_session.status,
+        )
+        return InterviewTimeoutResponse(
+            message="Interview already finalized.",
+            session_id=session_id,
+        )
+
+    if interview_session.status != InterviewStatus.IN_PROGRESS:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=SESSION_NOT_ACTIVE_ERROR,
+        )
+
+    # Mark timed out
+    now_utc = datetime.now(timezone.utc)
+    interview_session.status = InterviewStatus.TIMED_OUT
+    interview_session.completed_at = now_utc
+
+    # Collect answered questions only
+    answered_questions = [
+        q for q in interview_session.questions if q.answer is not None
+    ]
+
+    try:
+        if answered_questions:
+            # Build a transcript from answered questions only
+            transcript = _build_interview_transcript(
+                interview_session=interview_session,
+                only_answered=True,
+            )
+
+            _, resume_context = _load_resume_context(
+                db=db,
+                current_user=current_user,
+            )
+
+            report_prompt = build_report_prompt(
+                resume_context=resume_context,
+                target_role=interview_session.target_role,
+                interview_type=interview_session.interview_type.value,
+                difficulty=interview_session.difficulty.value,
+                transcript=transcript,
+            )
+
+            report_raw = await generate_chat_response(messages=report_prompt)
+            ai_report = _parse_ai_report(report_raw)
+
+        else:
+            # Zero answers — produce a minimal honest report without AI
+            logger.warning(
+                "Session %s timed out with zero answers — generating zero-answer report.",
+                session_id,
+            )
+            ai_report = AIReportSchema(
+                overall_score=0.0,
+                summary=(
+                    "This interview session ended before any answers were submitted. "
+                    "No performance data is available."
+                ),
+                strengths=[],
+                weaknesses=["No answers were submitted during the session."],
+                recommendations=(
+                    "Please attempt the interview again and submit answers "
+                    "for each question to receive a meaningful evaluation."
+                ),
+                career_readiness="Unable to assess — no answers provided.",
+                next_steps=["Retry the interview and answer each question."],
+            )
+
+        full_report_json = json.dumps(
+            ai_report.model_dump(),
+            ensure_ascii=False,
+        )
+
+        interview_session.overall_score = ai_report.overall_score
+        interview_session.summary = ai_report.summary
+        interview_session.recommendations = full_report_json
+
+        update_session(db=db, session=interview_session)
+        db.commit()
+
+        logger.info(
+            "Session %s finalized as TIMED_OUT with report.",
+            session_id,
+        )
+
+        return InterviewTimeoutResponse(
+            message="Interview finalized due to timeout.",
+            session_id=session_id,
+        )
+
+    except ChatClientError as exc:
+        db.rollback()
+        logger.exception(
+            "AI call failed during timeout finalization for session %s.", session_id
+        )
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Unable to generate partial report. Please try again.",
+        ) from exc
+
+    except HTTPException:
+        db.rollback()
+        raise
+
+    except Exception as exc:
+        db.rollback()
+        logger.exception("Unexpected error during timeout finalization.")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to finalize interview.",
+        ) from exc

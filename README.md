@@ -394,9 +394,7 @@ Keep the frontend terminal open too. The frontend uses HTML, CSS, and vanilla Ja
 | Port is already in use | Stop the process using the port or choose another port and update the relevant configuration. |
 
 ## Future Improvements
-## Future Improvements
 
-- Email verification
 - Cloud deployment
 - Multi-language support
 - Analytics dashboard

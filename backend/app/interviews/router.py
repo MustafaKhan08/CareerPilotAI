@@ -15,8 +15,10 @@ from app.interviews.schema import (
     InterviewReportResponse,
     InterviewSessionStartResponse,
     InterviewStartRequest,
+    InterviewTimeoutResponse,
 )
 from app.interviews.service import (
+    finalize_timeout,
     get_or_generate_report,
     get_report_pdf,
     start_interview,
@@ -215,4 +217,41 @@ def get_report_pdf_endpoint(
             "Content-Disposition": f'attachment; filename="{filename}"',
             "Content-Length": str(len(pdf_bytes)),
         },
+    )
+
+
+# ==========================================================
+# TIMEOUT FINALIZATION
+# ==========================================================
+
+
+@router.post(
+    "/{session_id}/timeout",
+    response_model=InterviewTimeoutResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Finalize a timed-out interview session",
+    description=(
+        "Called by the client when the interview countdown expires. "
+        "Marks the session as TIMED_OUT, generates a partial report from "
+        "submitted answers only, and persists it. "
+        "Idempotent: calling again on an already-finalized session returns success."
+    ),
+)
+async def finalize_timeout_endpoint(
+    session_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> InterviewTimeoutResponse:
+    """
+    Finalize a timed-out interview session.
+
+    - HTTP 404: session not found or not owned by user.
+    - HTTP 409: session is not in a state that allows timeout finalization.
+    - HTTP 502: AI partial-report generation failed.
+    """
+
+    return await finalize_timeout(
+        db=db,
+        current_user=current_user,
+        session_id=session_id,
     )

@@ -60,6 +60,7 @@ class InterviewStatus(str, Enum):
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
+    TIMED_OUT = "timed_out"
     ABANDONED = "abandoned"
 
 
@@ -169,6 +170,17 @@ class InterviewSession(Base):
 
     recommendations: Mapped[str | None] = mapped_column(
         Text,
+        nullable=True,
+    )
+
+    duration_minutes: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=15,
+    )
+
+    deadline_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
         nullable=True,
     )
 

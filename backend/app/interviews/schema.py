@@ -42,6 +42,13 @@ class InterviewStartRequest(BaseModel):
         le=20,
     )
 
+    duration_minutes: int = Field(
+        default=15,
+        ge=1,
+        le=60,
+        description="Total interview duration in whole minutes (1–60).",
+    )
+
 
 # ==========================================================
 # AI QUESTION SCHEMA
@@ -151,6 +158,9 @@ class InterviewSessionStartResponse(BaseModel):
 
     expected_focus: list[str]
 
+    deadline_at: datetime
+    """UTC deadline for the entire interview session."""
+
 
 # ==========================================================
 # QUESTION
@@ -247,6 +257,12 @@ class InterviewReportResponse(BaseModel):
     next_steps: list[str]
 
     completed_at: datetime
+
+    is_partial: bool = False
+    """True when the report was generated from a timed-out (incomplete) interview."""
+
+    status: InterviewStatus = InterviewStatus.COMPLETED
+    """Session status at the time the report was generated."""
 
 
 # ==========================================================
@@ -367,6 +383,18 @@ class InterviewSessionResponse(BaseModel):
     questions: list[
         InterviewQuestionItem
     ]
+
+
+# ==========================================================
+# TIMEOUT FINALIZATION
+# ==========================================================
+
+
+class InterviewTimeoutResponse(BaseModel):
+    """Response returned after a client requests timeout finalization."""
+
+    message: str
+    session_id: int
 
 
 # ==========================================================

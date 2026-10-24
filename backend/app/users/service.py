@@ -50,12 +50,14 @@ def create_user(db: Session, user_data: UserCreate) -> User:
     return user
 
 
+
+
 def authenticate_user(
     db: Session,
     email: str,
     password: str,
 ) -> User | None:
-    """Return the user when supplied credentials are valid."""
+    """Authenticate credentials and require a verified, active account."""
 
     user = get_user_by_email(db, email)
 
@@ -64,5 +66,15 @@ def authenticate_user(
 
     if not verify_password(password, user.password_hash):
         return None
+
+    if not user.is_email_verified:
+        raise ValueError(
+            "Please verify your email address before signing in."
+        )
+
+    if not user.is_active:
+        raise ValueError(
+            "Your account is inactive. Please contact support."
+        )
 
     return user

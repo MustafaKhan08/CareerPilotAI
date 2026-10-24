@@ -33,9 +33,20 @@ const api = {
             let errorMsg = 'An error occurred';
             try {
                 const errData = await response.json();
-                errorMsg = errData.detail || errorMsg;
+                // FastAPI validation errors return detail as an array of objects;
+                // other errors return detail as a plain string.
+                if (typeof errData.detail === 'string') {
+                    errorMsg = errData.detail;
+                } else if (Array.isArray(errData.detail)) {
+                    // Flatten Pydantic validation error list into a readable message.
+                    errorMsg = errData.detail
+                        .map(e => e.msg || JSON.stringify(e))
+                        .join(', ');
+                } else if (errData.detail) {
+                    errorMsg = JSON.stringify(errData.detail);
+                }
             } catch (e) {
-                errorMsg = response.statusText;
+                errorMsg = response.statusText || errorMsg;
             }
             throw new Error(errorMsg);
         }
@@ -75,6 +86,37 @@ const api = {
     },
 
     // ==========================================
+    // EMAIL VERIFICATION & PASSWORD RESET
+    // ==========================================
+
+    async verifyEmail(token) {
+        return this.fetchJSON(
+            `${CONSTANTS.ENDPOINTS.VERIFY_EMAIL}?token=${encodeURIComponent(token)}`
+        );
+    },
+
+    async resendVerification(email) {
+        return this.fetchJSON(CONSTANTS.ENDPOINTS.RESEND_VERIFICATION, {
+            method: 'POST',
+            body: JSON.stringify({ email })
+        });
+    },
+
+    async forgotPassword(email) {
+        return this.fetchJSON(CONSTANTS.ENDPOINTS.FORGOT_PASSWORD, {
+            method: 'POST',
+            body: JSON.stringify({ email })
+        });
+    },
+
+    async resetPassword(token, new_password) {
+        return this.fetchJSON(CONSTANTS.ENDPOINTS.RESET_PASSWORD, {
+            method: 'POST',
+            body: JSON.stringify({ token, new_password })
+        });
+    },
+
+    // ==========================================
     // RESUMES
     // ==========================================
     async uploadResume(file) {
@@ -103,7 +145,7 @@ const api = {
     // ==========================================
     // AI
     // ==========================================
-  async analyzeResume(id, regenerate = false) {
+    async analyzeResume(id, regenerate = false) {
         return this.fetchJSON(
             `${CONSTANTS.ENDPOINTS.AI_RESUMES}/${id}/analyze?regenerate=${regenerate}`,
             {
@@ -218,5 +260,11 @@ const api = {
 
     async downloadInterviewPDF(sessionId) {
         return this.fetchJSON(`${CONSTANTS.ENDPOINTS.INTERVIEWS}/${sessionId}/report/pdf`);
+    },
+
+    async finalizeInterviewTimeout(sessionId) {
+        return this.fetchJSON(`${CONSTANTS.ENDPOINTS.INTERVIEWS}/${sessionId}/timeout`, {
+            method: 'POST'
+        });
     }
 };
